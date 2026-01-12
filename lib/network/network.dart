@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 const token = "715f8ab555438f985b579844ea227767";
 const xusername = "core@2023";
 const xpassword = "corevalue@20231234";
-const url = "https://ibprservices.medtrans.id";
-const upload = "https://ibprservices.medtrans.id/upload";
-const photo = "https://ibprservices.medtrans.id/photo";
+const url = "https://infoservices.medtrans.id";
+const upload = "https://infoservices.medtrans.id/upload";
+const photo = "https://infoservices.medtrans.id/photo";
 
 double width(BuildContext context) {
   return MediaQuery.of(context).size.width;
@@ -30,6 +30,10 @@ class NetworkURL {
 
   static String getListNasbah() {
     return "$url/webServices/get_list_nasabah_dev.php";
+  }
+
+  static String getListMobileInfo() {
+    return "$url/webServices/users_info_inquiry.php";
   }
 
   static String generatedMpin() {
@@ -186,5 +190,13 @@ class NetworkURL {
 
   static String gantipassword() {
     return "$url/webServices/ganti_users_password.php";
+  }
+
+  static String inqueryRek() {
+    return "$url/webServices/inquery_info_rek.php";
+  }
+
+  static String usersinfocreate() {
+    return "$url/webServices/users_info_create.php";
   }
 }

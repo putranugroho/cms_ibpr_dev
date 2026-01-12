@@ -104,6 +104,45 @@ class AuthRepository {
     }
   }
 
+  static Future<dynamic> postJson(
+    String url,
+    Map<String, dynamic> body,
+  ) async {
+    final dio = Dio();
+
+    dio.options.headers = {
+      "Content-Type": "application/json",
+      "x-username": xusername,
+      "x-password": xpassword,
+    };
+
+    final response = await dio.post(
+      url,
+      data: body,
+    );
+
+    return response.data is String ? jsonDecode(response.data) : response.data;
+  }
+
+  static Future<dynamic> createUsersInfo(
+    String url,
+    Map<String, dynamic> body,
+  ) async {
+    Dio dio = Dio();
+
+    dio.options.headers = {
+      'x-username': xusername,
+      'x-password': xpassword,
+    };
+
+    final res = await dio.post(
+      url,
+      data: FormData.fromMap(body),
+    );
+
+    return res.data is String ? jsonDecode(res.data) : res.data;
+  }
+
   static Future<dynamic> mPinGeneratedValidated(
     String token,
     String url,
@@ -115,6 +154,41 @@ class AuthRepository {
       // "no_rek": noRek,
       "m_pin": mpin,
       // "bpr_id": bprId,
+    });
+    Dio dio = Dio();
+    dio.options.headers['x-username'] = xusername;
+    dio.options.headers['x-password'] = xpassword;
+    if (kDebugMode) {
+      print("ENDPOINT URL : $url");
+    }
+    final response = await dio.post(url, data: formData);
+    if (kDebugMode) {
+      print("RESPONSE STATUS CODE : ${response.statusCode}");
+    }
+    if (response.statusCode == 200) {
+      if (kDebugMode) {
+        print("RESPONSE DATA LOGIN : ${response.data}");
+      }
+      return jsonDecode(response.data);
+    } else {
+      return jsonDecode(response.data);
+    }
+  }
+
+  static Future<dynamic> getUsersInfoList(
+    String token,
+    String url,
+    String bprId, {
+    String? search,
+    String? page,
+    String? limit,
+  }) async {
+    FormData formData = FormData.fromMap({
+      "token": token,
+      "bpr_id": bprId,
+      if (search != null) "search": search,
+      if (page != null) "page": page,
+      if (limit != null) "limit": limit,
     });
     Dio dio = Dio();
     dio.options.headers['x-username'] = xusername;

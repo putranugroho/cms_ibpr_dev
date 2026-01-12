@@ -4,6 +4,7 @@ import 'package:cms_ibpr/module/kantor/kantor_page.dart';
 import 'package:cms_ibpr/module/laporan/laporan_page.dart';
 import 'package:cms_ibpr/module/limit/limit_page.dart';
 import 'package:cms_ibpr/module/menu/menu_notifier.dart';
+import 'package:cms_ibpr/module/mobile_info/mobile_info_nasabah_page.dart';
 import 'package:cms_ibpr/module/mpin/cetak_mpin_page.dart';
 import 'package:cms_ibpr/module/mpin/ganti_mpin_page.dart';
 import 'package:cms_ibpr/module/mpin/generated_mpin_page.dart';
@@ -338,7 +339,8 @@ class MenuPage extends StatelessWidget {
                                           e.submenu == "BLOKIR NASABAH" ||
                                           e.submenu == "UNBLOKIR NASABAH" ||
                                           e.submenu == "DAFTAR KARTU" ||
-                                          e.submenu == "UPDATE FOTO LEWAT WEB" ||
+                                          e.submenu ==
+                                              "UPDATE FOTO LEWAT WEB" ||
                                           e.submenu == "TUTUP AKUN IBPR"))
                                   .isNotEmpty
                               ? ExpansionTile(
@@ -361,7 +363,7 @@ class MenuPage extends StatelessWidget {
                                         ),
                                         const Expanded(
                                           child: Text(
-                                            "Nasabah",
+                                            "IBPR",
                                             style: TextStyle(
                                                 color: Colors.white,
                                                 fontWeight: FontWeight.normal),
@@ -403,7 +405,8 @@ class MenuPage extends StatelessWidget {
                                         value.listFasilitas
                                                 .where((e) =>
                                                     e.menu == "AKUN" &&
-                                                    e.submenu == "UPDATE FOTO LEWAT WEB")
+                                                    e.submenu ==
+                                                        "UPDATE FOTO LEWAT WEB")
                                                 .isNotEmpty
                                             ? InkWell(
                                                 onTap: () =>
@@ -499,6 +502,110 @@ class MenuPage extends StatelessWidget {
                                                       color: Colors.white,
                                                       fontWeight:
                                                           value.page == 12
+                                                              ? FontWeight.bold
+                                                              : FontWeight.w300,
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                            : SizedBox(),
+                                        value.listFasilitas
+                                                .where((e) =>
+                                                    e.menu == "AKUN" &&
+                                                    e.submenu ==
+                                                        "TUTUP AKUN IBPR")
+                                                .isNotEmpty
+                                            ? InkWell(
+                                                onTap: () =>
+                                                    value.gantipage(13),
+                                                child: Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(vertical: 8),
+                                                  child: Text(
+                                                    // "Tutup Akun IBPR",
+                                                    "Tutup Akun Nasabah",
+                                                    textAlign: TextAlign.left,
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          value.page == 13
+                                                              ? FontWeight.bold
+                                                              : FontWeight.w300,
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                            : SizedBox(),
+                                      ],
+                                    )
+                                  ],
+                                )
+                              : SizedBox(),
+                          value.listFasilitas
+                                  .where((e) =>
+                                      e.menu == "AKUN" &&
+                                      (e.submenu == "DATA NASABAH" ||
+                                          e.submenu == "BLOKIR NASABAH" ||
+                                          e.submenu == "UNBLOKIR NASABAH" ||
+                                          e.submenu == "DAFTAR KARTU" ||
+                                          e.submenu ==
+                                              "UPDATE FOTO LEWAT WEB" ||
+                                          e.submenu == "TUTUP AKUN IBPR"))
+                                  .isNotEmpty
+                              ? ExpansionTile(
+                                  tilePadding: const EdgeInsets.all(0),
+                                  childrenPadding: const EdgeInsets.all(0),
+                                  iconColor: Colors.white,
+                                  collapsedIconColor: Colors.white,
+                                  title: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
+                                    child: Row(
+                                      children: [
+                                        Image.asset(
+                                          ImageAssets.user,
+                                          color: Colors.white,
+                                          height: 24,
+                                        ),
+                                        const SizedBox(
+                                          width: 12,
+                                        ),
+                                        const Expanded(
+                                          child: Text(
+                                            "MOBILE INFO",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.normal),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        value.listFasilitas
+                                                .where((e) =>
+                                                    e.menu == "AKUN" &&
+                                                    e.submenu == "DATA NASABAH")
+                                                .isNotEmpty
+                                            ? InkWell(
+                                                onTap: () =>
+                                                    value.gantipage(16),
+                                                child: Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(vertical: 8),
+                                                  child: Text(
+                                                    "Data Nasabah",
+                                                    textAlign: TextAlign.left,
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          value.page == 2
                                                               ? FontWeight.bold
                                                               : FontWeight.w300,
                                                     ),
@@ -797,7 +904,9 @@ class MenuPage extends StatelessWidget {
                                                                               ? const ResetMPINPage()
                                                                               : value.page == 15
                                                                                   ? const FotoNasabahCollmePage()
-                                                                                  : const LaporanPage()),
+                                                                                  : value.page == 16
+                                                                                      ? const UsersInfoPage()
+                                                                                      : const LaporanPage()),
             ],
           ),
         )),

@@ -4,6 +4,7 @@ export 'nsaabah_model.dart';
 export 'users_model.dart';
 export 'users_access_model.dart';
 export 'limit_trx_model.dart';
+export 'users_info_model.dart';
 export 'foto_nasabah_collme_model.dart';
 export 'acct_type_model.dart';
 export 'fasilitas_add_model.dart';
