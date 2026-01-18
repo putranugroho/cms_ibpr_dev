@@ -1889,6 +1889,7 @@ file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/models/limit_trx_model
 file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/models/nsaabah_model.dart
 file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/models/sandi_bank_model.dart
 file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/models/users_access_model.dart
+file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/models/users_info_model.dart
 file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/models/users_model.dart
 file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/module/account_type/account_type_notifier.dart
 file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/module/account_type/account_type_page.dart
@@ -1908,6 +1909,8 @@ file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/module/limit/limit_trx
 file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/module/limit/limit_trx_page.dart
 file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/module/menu/menu_notifier.dart
 file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/module/menu/menu_page.dart
+file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/module/mobile_info/mobile_info_nasabah_notifer.dart
+file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/module/mobile_info/mobile_info_nasabah_page.dart
 file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/module/mpin/cetak_mpin_notifier.dart
 file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/module/mpin/cetak_mpin_page.dart
 file:///Users/edikurniawan/Documents/Product/cms-ibpr/lib/module/mpin/ganti_mpin_notifier.dart
