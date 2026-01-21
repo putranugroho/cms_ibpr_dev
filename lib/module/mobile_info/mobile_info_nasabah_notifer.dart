@@ -178,7 +178,7 @@ String? kdKantor;
       if (res['value'] == 1) {
         cif.text = res['data']['nocif']?.toString() ?? '';
         nama.text = res['data']['nama']?.toString() ?? '';
-        kdKantor = res['data']['kd_kantor']?.toString() ?? '';
+        kdKantor = res['data']['kode_kantor']?.toString() ?? '';
       } else {
         resetRekening();
         informationDialog(

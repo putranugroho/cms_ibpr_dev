@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 const token = "715f8ab555438f985b579844ea227767";
 const xusername = "core@2023";
 const xpassword = "corevalue@20231234";
-const url = "https://infoservices.medtrans.id";
+const url = "https://ibprservices.medtrans.id";
+const url2 = "https://infoservices.medtrans.id";
 const upload = "https://infoservices.medtrans.id/upload";
 const photo = "https://infoservices.medtrans.id/photo";
 
@@ -33,7 +34,7 @@ class NetworkURL {
   }
 
   static String getListMobileInfo() {
-    return "$url/webServices/users_info_inquiry.php";
+    return "$url2/webServices/users_info_inquiry.php";
   }
 
   static String generatedMpin() {
@@ -193,10 +194,10 @@ class NetworkURL {
   }
 
   static String inqueryRek() {
-    return "$url/webServices/inquery_info_rek.php";
+    return "$url2/webServices/inquery_info_rek.php";
   }
 
   static String usersinfocreate() {
-    return "$url/webServices/users_info_create.php";
+    return "$url2/webServices/users_info_create.php";
   }
 }
