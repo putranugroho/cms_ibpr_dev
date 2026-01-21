@@ -102,6 +102,7 @@ class UsersInfoNotifier extends ChangeNotifier {
       final body = {
         "token": token.toString(),
         "bpr_id": users!.bprId.toString(),
+        "kd_kantor": kdKantor,
         "no_cif": cif.text.trim(),
         "username": "", // login CMS
         "password": "", // optional / kosong
@@ -142,7 +143,7 @@ class UsersInfoNotifier extends ChangeNotifier {
   }
 
   bool isInquiry = false;
-
+String? kdKantor;
   Future<void> inquiryRekening() async {
     if (rekening.text.isEmpty || isInquiry) return;
 
@@ -177,6 +178,7 @@ class UsersInfoNotifier extends ChangeNotifier {
       if (res['value'] == 1) {
         cif.text = res['data']['nocif']?.toString() ?? '';
         nama.text = res['data']['nama']?.toString() ?? '';
+        kdKantor = res['data']['kd_kantor']?.toString() ?? '';
       } else {
         resetRekening();
         informationDialog(
