@@ -64,6 +64,7 @@ class CetakMPINNotifier extends ChangeNotifier {
       NetworkURL.inqueryHp(),
       users!.bprId,
       noHp.text.trim(),
+      users!.usersId,
     ).then((value) {
       Navigator.pop(context);
       if (value['value'] == 1) {
@@ -73,15 +74,8 @@ class CetakMPINNotifier extends ChangeNotifier {
         noHp.text = value['data']['no_hp'];
         tglLahir.text = value['data']['tgl_lahir'];
         gender = value['data']['gender'];
-        mPinResult = value['data']['mpin_cetak'];
-        mpIn = (((int.parse(value['data']['mpin_cetak'].toString().substring(
-                            0,
-                            (value['data']['mpin_cetak'].toString().length -
-                                4))) +
-                        111111) -
-                    999999) /
-                2)
-            .toString();
+        mPinResult = (value['data']['mpin_cetak'] ?? '').toString();
+        mpIn = mPinResult.length >= 6 ? mPinResult.substring(0, 6) : mPinResult;
         // print(mpIn);
         // print(gender);
         kdKantor = value['data']['kd_kantor'];
@@ -94,16 +88,21 @@ class CetakMPINNotifier extends ChangeNotifier {
 
   Future<void> generateAndPrintPDF() async {
     if (mPinResult == "") {
-      informationDialog(
-          context, "Error", "Tidak bisa melakukan cetak ulang MPIN");
+      informationDialog(context, "Error", "Tidak bisa melakukan cetak ulang MPIN");
     } else {
       DialogCustom().showLoading(context);
-      AuthRepository.updateMpinCetak(token, NetworkURL.updateMpinCetak(),
-              users!.bprId, noHp.text.trim(), noRek.text.trim())
-          .then((value) async {
+      AuthRepository.updateMpinCetak(
+        token,
+        NetworkURL.updateMpinCetak(),
+        users!.bprId,
+        noHp.text.trim(),
+        noRek.text.trim(),
+        users!.usersId,
+        kdKantor,
+      ).then((value) async {
         Navigator.pop(context);
         if (value['value'] == 1) {
-          final pdf = pw.Document(); 
+          final pdf = pw.Document();
 
           pdf.addPage(
             pw.Page(
@@ -115,8 +114,7 @@ class CetakMPINNotifier extends ChangeNotifier {
                   children: [
                     pw.Text(
                       "MPIN Nasabah",
-                      style: pw.TextStyle(
-                          fontWeight: pw.FontWeight.bold, fontSize: 12),
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
                     ),
                     pw.SizedBox(height: 20),
                     _buildRow("Nama Nasabah", namaRek.text.trim()),
@@ -132,8 +130,9 @@ class CetakMPINNotifier extends ChangeNotifier {
                     _buildDivider(),
                     pw.SizedBox(height: 20),
                     pw.Text(
-                        "Harap untuk selalu menjaga kerahasiaan data MPIN anda.",
-                        style: const pw.TextStyle(fontSize: 12))
+                      "Harap untuk selalu menjaga kerahasiaan data MPIN anda.",
+                      style: const pw.TextStyle(fontSize: 12),
+                    )
                   ],
                 ),
               ),
@@ -149,10 +148,11 @@ class CetakMPINNotifier extends ChangeNotifier {
         } else {
           informationDialog(context, "Error", value['message']);
         }
+      }).catchError((e) {
+        Navigator.pop(context);
+        informationDialog(context, "Error", e.toString());
       });
     }
-
-    // Reload data
   }
 
   pw.Widget _buildRow(String label, String value) {
@@ -182,25 +182,22 @@ class CetakMPINNotifier extends ChangeNotifier {
   }
 
   generated() async {
-    DialogCustom().showLoading(context);
-    var rndnumber = "";
-    var rnd = Random();
-    for (var i = 0; i < 6; i++) {
-      rndnumber = rndnumber + rnd.nextInt(9).toString();
+    if (noHp.text.trim().isEmpty || noRek.text.trim().isEmpty || kdKantor.trim().isEmpty) {
+      informationDialog(context, "Error", "Data nasabah belum lengkap");
+      return;
     }
-    // print(rndnumber);
-    var mpin = (((int.parse((rndnumber)) * 2) + 999999) - 111111).toString();
-    // print(mpin);
+
+    DialogCustom().showLoading(context);
+
     AuthRepository.generatedMPIN(
-            token,
-            NetworkURL.generatedMPIN(),
-            users!.usersId,
-            kdKantor,
-            users!.bprId,
-            noHp.text,
-            noRek.text.trim(),
-            mpin)
-        .then((value) {
+      token,
+      NetworkURL.generatedMpin(),
+      users!.usersId,
+      kdKantor,
+      users!.bprId,
+      noHp.text.trim(),
+      noRek.text.trim(),
+    ).then((value) {
       Navigator.pop(context);
       if (value['value'] == 1) {
         namaRek.clear();
@@ -209,11 +206,15 @@ class CetakMPINNotifier extends ChangeNotifier {
         noHp.clear();
         tglLahir.clear();
         gender = null;
+        kdKantor = "";
         notifyListeners();
         informationDialog(context, "Information", value['message']);
       } else {
         informationDialog(context, "Error", value['message']);
       }
+    }).catchError((e) {
+      Navigator.pop(context);
+      informationDialog(context, "Error", e.toString());
     });
   }
 }

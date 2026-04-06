@@ -81,7 +81,7 @@ class AccountRepository {
     String url,
     String userlogin,
     String bprId,
-    String kdBank,
+    String bpr_id,
     String kdKantor,
     String namaKantor,
   ) async {
@@ -90,7 +90,7 @@ class AccountRepository {
       "term": "",
       "bpr_id": bprId,
       "userlogin": userlogin,
-      "kd_bank": kdBank,
+      "kd_bank": bpr_id,
       "kd_kantor": kdKantor,
       "nama_kantor": namaKantor,
     };
@@ -120,7 +120,7 @@ class AccountRepository {
     String url,
     String bprId,
     String userlogin,
-    String kdBank,
+    String bpr_id,
     String kdKantor,
     String namaKantor,
   ) async {
@@ -129,7 +129,7 @@ class AccountRepository {
       "term": "",
       "bpr_id": bprId,
       "userlogin": userlogin,
-      "kd_bank": kdBank,
+      "kd_bank": bpr_id,
       "kd_kantor": kdKantor,
       "nama_kantor": namaKantor,
     };
@@ -159,7 +159,7 @@ class AccountRepository {
     String url,
     String bprId,
     String userlogin,
-    String kdBank,
+    String bpr_id,
     String kdKantor,
     String namaKantor,
   ) async {
@@ -168,7 +168,7 @@ class AccountRepository {
       "term": "",
       "bpr_id": bprId,
       "userlogin": userlogin,
-      "kd_bank": kdBank,
+      "kd_bank": bpr_id,
       "kd_kantor": kdKantor,
       "nama_kantor": namaKantor,
     };

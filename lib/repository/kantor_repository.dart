@@ -44,7 +44,7 @@ class KnatorRepository {
     String url,
     String bprId,
     String userlogin,
-    String kdBank,
+    String bpr_id,
     String kdKantor,
     String namaKantor,
   ) async {
@@ -53,7 +53,7 @@ class KnatorRepository {
       "term": "",
       "userlogin": userlogin,
       "bpr_id": bprId,
-      "kd_bank": kdBank,
+      "kd_bank": bpr_id,
       "kd_kantor": kdKantor,
       "nama_kantor": namaKantor,
     };
@@ -83,7 +83,7 @@ class KnatorRepository {
     String url,
     String bprId,
     String userlogin,
-    String kdBank,
+    String bpr_id,
     String kdKantor,
     String namaKantor,
   ) async {
@@ -92,7 +92,7 @@ class KnatorRepository {
       "term": "",
       "bpr_id": bprId,
       "userlogin": userlogin,
-      "kd_bank": kdBank,
+      "kd_bank": bpr_id,
       "kd_kantor": kdKantor,
       "nama_kantor": namaKantor,
     };
@@ -122,7 +122,7 @@ class KnatorRepository {
     String url,
     String bprId,
     String userlogin,
-    String kdBank,
+    String bpr_id,
     String kdKantor,
     String namaKantor,
   ) async {
@@ -131,7 +131,7 @@ class KnatorRepository {
       "bpr_id": bprId,
       "term": "",
       "userlogin": userlogin,
-      "kd_bank": kdBank,
+      "kd_bank": bpr_id,
       "kd_kantor": kdKantor,
       "nama_kantor": namaKantor,
     };

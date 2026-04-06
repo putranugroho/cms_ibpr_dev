@@ -70,18 +70,11 @@ class NasabahNotifier extends ChangeNotifier {
                                     onTap: () {
                                       Navigator.pop(context);
                                       selectCamera = i;
-                                      controller = CameraController(
-                                          cameras[selectCamera!],
-                                          ResolutionPreset.max);
-                                      controller2 = CameraController(
-                                          cameras[selectCamera!],
-                                          ResolutionPreset.max);
+                                      controller = CameraController(cameras[selectCamera!], ResolutionPreset.max);
+                                      controller2 = CameraController(cameras[selectCamera!], ResolutionPreset.max);
                                       notifyListeners();
                                     },
-                                    child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 8),
-                                        child: Text(cameras[i].name)),
+                                    child: Container(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(cameras[i].name)),
                                   ),
                                   const SizedBox(
                                     height: 8,
@@ -130,14 +123,9 @@ class NasabahNotifier extends ChangeNotifier {
   }
 
   gantiTanggal() async {
-    var pickedendDate = (await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(1930),
-        lastDate: DateTime.now()));
+    var pickedendDate = (await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(1930), lastDate: DateTime.now()));
 
-    tglLahir.text = DateFormat("yyyy-MM-dd")
-        .format(DateTime.parse(pickedendDate.toString()));
+    tglLahir.text = DateFormat("yyyy-MM-dd").format(DateTime.parse(pickedendDate.toString()));
     notifyListeners();
   }
 
@@ -154,9 +142,7 @@ class NasabahNotifier extends ChangeNotifier {
     list.clear();
     listKantor.clear();
     notifyListeners();
-    AccountRepository.getListAll(
-            token, NetworkURL.getListAcctType(), users!.usersId, users!.bprId)
-        .then((value) {
+    AccountRepository.getListAll(token, NetworkURL.getListAcctType(), users!.usersId, users!.bprId).then((value) {
       if (value['value'] == 1) {
         for (Map<String, dynamic> i in value['data']) {
           listAccount.add(AcctTypeModel.fromJson(i));
@@ -202,8 +188,7 @@ class NasabahNotifier extends ChangeNotifier {
     image = null;
     image2 = null;
     controller = CameraController(cameras[selectCamera!], ResolutionPreset.max);
-    controller2 =
-        CameraController(cameras[selectCamera!], ResolutionPreset.max);
+    controller2 = CameraController(cameras[selectCamera!], ResolutionPreset.max);
     currentStep = 0;
     tombolcapture = false;
     tombolcaptureselfie = false;
@@ -279,7 +264,7 @@ class NasabahNotifier extends ChangeNotifier {
             token,
             NetworkURL.inqueryRekCMS(),
             users!.usersId,
-            // kantorModel!.kdBank,
+            // kantorModel!.bpr_id,
             users!.bprId,
             "0200",
             "TRX",
@@ -289,7 +274,7 @@ class NasabahNotifier extends ChangeNotifier {
             norek.text.trim(),
             "2")
         .then((value) {
-          print(value);
+      print(value);
       Navigator.pop(context);
       if (value['value'] == 1) {
         namarek.text = value['data']['nama'];
@@ -313,25 +298,21 @@ class NasabahNotifier extends ChangeNotifier {
           path = await image!.readAsBytes();
 
           // // selfi = img.decodeImage(bytes);
-          imageSelfi =
-              "_${DateTime.now().millisecondsSinceEpoch.toString()}.jpg";
+          imageSelfi = "_${DateTime.now().millisecondsSinceEpoch.toString()}.jpg";
         }
         if (image2 != null) {
           path2 = await image2!.readAsBytes();
 
-          imageKtp =
-              "${DateTime.now().millisecondsSinceEpoch.toString()}__.jpg";
+          imageKtp = "${DateTime.now().millisecondsSinceEpoch.toString()}__.jpg";
         }
 
-        NasabahRepository.insertGallery(token, NetworkURL.insertGallery(),
-                path2, imageKtp, path, imageSelfi)
-            .then((value) {
+        NasabahRepository.insertGallery(token, NetworkURL.insertGallery(), path2, imageKtp, path, imageSelfi).then((value) {
           if (value['value'] == 1) {
             NasabahRepository.updateAkunCMS(
               token,
               NetworkURL.updateAkunCms(),
               users!.usersId,
-              kantorModel!.kdBank,
+              kantorModel!.bpr_id,
               kantorModel!.kdKantor,
               acctTypeModel!.kdAcc,
               gender!,
@@ -375,54 +356,61 @@ class NasabahNotifier extends ChangeNotifier {
       } else {
         Navigator.pop(context);
         DialogCustom().showLoading(context);
-        final path = await image!.readAsBytes();
 
-        // // selfi = img.decodeImage(bytes);
-        var imageSelfi =
-            "_${DateTime.now().millisecondsSinceEpoch.toString()}.jpg";
+        // VALIDASI WAJIB FOTO
+        if (image == null || image2 == null) {
+          Navigator.pop(context);
+          informationDialog(context, "Error", "Foto KTP dan Selfie wajib diisi");
+          return;
+        }
 
-        final path2 = await image2!.readAsBytes();
+        final pathSelfie = await image!.readAsBytes();
+        final pathKtp = await image2!.readAsBytes();
 
-        var imageKtp =
-            "${DateTime.now().millisecondsSinceEpoch.toString()}__.jpg";
+        var imageSelfi = "_${DateTime.now().millisecondsSinceEpoch}.jpg";
+        var imageKtp = "${DateTime.now().millisecondsSinceEpoch}__.jpg";
 
-        NasabahRepository.insertGallery(token, NetworkURL.insertGallery(),
-                path2, imageKtp, path, imageSelfi)
-            .then((value) {
+        NasabahRepository.insertGallery(
+          token,
+          NetworkURL.insertGallery(),
+          pathKtp,
+          imageKtp,
+          pathSelfie,
+          imageSelfi,
+        ).then((value) {
           if (value['value'] == 1) {
+            final data = value['data'];
+
+            // ✅ PAKAI PATH DARI GO
+            final ktpPath = data['ktp_path'];
+            final selfiePath = data['selfie_path'];
+
             NasabahRepository.insertAkunCMS(
-                    token,
-                    NetworkURL.insertAKunCMS(),
-                    users!.usersId,
-                    // kantorModel!.kdBank,
-                    users!.bprId,
-                    // kantorModel!.kdKantor,
-                    users!.kodeKantor,
-                    acctTypeModel!.kdAcc,
-                    gender!,
-                    tglLahir.text.trim(),
-                    noHp.text.trim(),
-                    namarek.text.trim(),
-                    norek.text.trim(),
-                    // namaLengkap.text.trim(),
-                    namarek.text.trim(),
-                    nik.text.trim(),
-                    imageKtp,
-                    imageSelfi)
-                .then((e) {
+              token,
+              NetworkURL.insertAKunCMS(),
+              users!.usersId,
+              users!.bprId,
+              users!.kodeKantor,
+              acctTypeModel!.kdAcc,
+              gender!,
+              tglLahir.text.trim(),
+              noHp.text.trim(),
+              namarek.text.trim(),
+              norek.text.trim(),
+              namarek.text.trim(), // nama = nama rekening
+              nik.text.trim(),
+              ktpPath, // ✅ PATH
+              selfiePath, // ✅ PATH
+            ).then((e) {
               Navigator.pop(context);
               if (e['value'] == 1) {
                 getNasabah();
-                nasabahModel = null;
-                kantorModel = null;
-                acctTypeModel = null;
-                gender = null;
-                tglLahir.clear();
-                noHp.clear();
+                namaLengkap.clear();
                 namarek.clear();
                 norek.clear();
-                namaLengkap.clear();
+                noHp.clear();
                 nik.clear();
+                tglLahir.clear();
                 image = null;
                 image2 = null;
                 notifyListeners();
@@ -480,16 +468,24 @@ class NasabahNotifier extends ChangeNotifier {
   }
 
   generated() async {
+    if (listAdd.isEmpty) {
+      CustomDialog.messageResponse(context, "Pilih Nasabah");
+      return;
+    }
+
+    final nasabah = listAdd.first;
+
     DialogCustom().showLoading(context);
-    // print(jsonEncode(listAdd));
+
     NasabahRepository.generatedMpin(
-            token,
-            NetworkURL.generatedMpin(),
-            users!.kodeKantor,
-            users!.bprId,
-            users!.usersId,
-            jsonEncode(listAdd))
-        .then((value) {
+      token,
+      NetworkURL.generatedMpin(),
+      users!.kodeKantor,
+      users!.bprId,
+      users!.usersId,
+      nasabah.noHp,
+      nasabah.noRek,
+    ).then((value) {
       Navigator.pop(context);
       if (value['value'] == 1) {
         getNasabah();
@@ -498,6 +494,9 @@ class NasabahNotifier extends ChangeNotifier {
       } else {
         CustomDialog.messageResponse(context, value['message']);
       }
+    }).catchError((err) {
+      Navigator.pop(context);
+      CustomDialog.messageResponse(context, err.toString());
     });
   }
 
@@ -507,9 +506,7 @@ class NasabahNotifier extends ChangeNotifier {
   Future getNasabah() async {
     isLoading = true;
     list.clear();
-    NasabahRepository.getNasabah(
-            token, NetworkURL.getListNasbah(), users!.usersId, users!.bprId, users!.kodeKantor)
-        .then((value) {
+    NasabahRepository.getNasabah(token, NetworkURL.getListNasbah(), users!.usersId, users!.bprId, users!.kodeKantor).then((value) {
       if (value['value'] == 1) {
         for (Map<String, dynamic> i in value['data']) {
           list.add(NsaabahModel.fromJson(i));
@@ -533,8 +530,7 @@ class NasabahNotifier extends ChangeNotifier {
       cellValues = selectedData.map((cell) => cell.value).toList();
       // var kategoriNew = cellValues![2];
       // phoneSelect = cellValues![6];
-      nasabahModel =
-          list.where((element) => element.noRek == cellValues![2]).first;
+      nasabahModel = list.where((element) => element.noRek == cellValues![2]).first;
       // print("${cellValues![2]}");
       edit();
       notifyListeners();
@@ -550,14 +546,11 @@ class NasabahNotifier extends ChangeNotifier {
     editData = true;
     key.currentState!.openEndDrawer();
     controller = CameraController(cameras[selectCamera!], ResolutionPreset.max);
-    controller2 =
-        CameraController(cameras[selectCamera!], ResolutionPreset.max);
+    controller2 = CameraController(cameras[selectCamera!], ResolutionPreset.max);
     // kantorModel = listKantor
     //     .where((element) => element.kdKantor == nasabahModel!.kdKantor)
     //     .first;
-    acctTypeModel = listAccount
-        .where((element) => element.kdAcc == nasabahModel!.acctType)
-        .first;
+    acctTypeModel = listAccount.where((element) => element.kdAcc == nasabahModel!.acctType).first;
     namaLengkap.text = nasabahModel!.nama;
     namarek.text = nasabahModel!.namaRek;
     noHp.text = nasabahModel!.noHp;
@@ -644,7 +637,7 @@ class NasabahNotifier extends ChangeNotifier {
             token,
             NetworkURL.deleteAkunCms(),
             users!.usersId,
-            kantorModel!.kdBank,
+            kantorModel!.bpr_id,
             kantorModel!.kdKantor,
             acctTypeModel!.kdAcc,
             gender!,
@@ -700,8 +693,7 @@ class NasabahNotifier extends ChangeNotifier {
 
   cancelKTP() {
     image2 = null;
-    controller2 =
-        CameraController(cameras[selectCamera!], ResolutionPreset.max);
+    controller2 = CameraController(cameras[selectCamera!], ResolutionPreset.max);
     openKTP();
     notifyListeners();
   }

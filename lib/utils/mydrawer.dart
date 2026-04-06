@@ -38,7 +38,7 @@ class MyDrawer extends StatelessWidget {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 child: Text(
-                                  "(${e.kdBank} - ${e.kdKantor}), ${e.namaKantor}",
+                                  "(${e.bpr_id} - ${e.kdKantor}), ${e.namaKantor}",
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -252,12 +252,7 @@ class MyDrawer extends StatelessWidget {
                                   children: [
                                     Transform.flip(
                                       flipX: true,
-                                      child: Positioned(
-                                          top: 0,
-                                          left: 0,
-                                          right: 0,
-                                          bottom: 0,
-                                          child: CameraPreview(value.controller2!)),
+                                      child: Positioned(top: 0, left: 0, right: 0, bottom: 0, child: CameraPreview(value.controller2!)),
                                     ),
                                     Positioned(
                                       bottom: 16,
@@ -351,12 +346,7 @@ class MyDrawer extends StatelessWidget {
                                   children: [
                                     Transform.flip(
                                       flipX: true,
-                                      child: Positioned(
-                                          top: 0,
-                                          left: 0,
-                                          right: 0,
-                                          bottom: 0,
-                                          child: CameraPreview(value.controller!)),
+                                      child: Positioned(top: 0, left: 0, right: 0, bottom: 0, child: CameraPreview(value.controller!)),
                                     ),
                                     Positioned(
                                       bottom: 16,

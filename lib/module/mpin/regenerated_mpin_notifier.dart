@@ -55,6 +55,7 @@ class RegeneratedMPINNotifier extends ChangeNotifier {
       NetworkURL.inqueryHp(),
       users!.bprId,
       noHp.text.trim(),
+      users!.usersId,
     ).then((value) {
       Navigator.pop(context);
       if (value['value'] == 1) {
@@ -84,15 +85,14 @@ class RegeneratedMPINNotifier extends ChangeNotifier {
     var mpin = (((int.parse((rndnumber)) * 2) + 999999) - 111111).toString();
     // print(mpin);
     AuthRepository.generatedMPIN(
-            token,
-            NetworkURL.regeneratedMPIN(),
-            users!.usersId,
-            kdKantor,
-            users!.bprId,
-            noHp.text,
-            noRek.text.trim(),
-            mpin)
-        .then((value) {
+      token,
+      NetworkURL.generatedMpin(),
+      users!.usersId,
+      kdKantor,
+      users!.bprId,
+      noHp.text.trim(),
+      noRek.text.trim(),
+    ).then((value) {
       Navigator.pop(context);
       if (value['value'] == 1) {
         namaRek.clear();

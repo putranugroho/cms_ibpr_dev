@@ -40,8 +40,7 @@ class AuthRepository {
     }
   }
 
-  static Future<dynamic> logOut(String url, String bprId, String userlogin,
-      String userid, String password, String sbbTeller) async {
+  static Future<dynamic> logOut(String url, String bprId, String userlogin, String userid, String password, String sbbTeller) async {
     Map<String, dynamic> formData = {
       'userlogin': userlogin,
       'bpr_id': bprId,
@@ -77,31 +76,38 @@ class AuthRepository {
     String url,
     String bprId,
     String noHp,
+    String userlogin,
   ) async {
     Map<String, dynamic> json = {
-      "token": token,
+      "type": "byhp",
+      "userlogin": userlogin,
       "bpr_id": bprId,
       "no_hp": noHp,
+      "term": "web",
     };
-    print("ini body inquery = ${jsonEncode(json)}");
+
     Dio dio = Dio();
     dio.options.headers['x-username'] = xusername;
     dio.options.headers['x-password'] = xpassword;
+
     if (kDebugMode) {
       print("ENDPOINT URL : $url");
+      print("REQUEST INQUIRY HP : $json");
     }
+
     final response = await dio.post(url, data: json);
+    final decoded = response.data is String ? jsonDecode(response.data) : response.data;
+
     if (kDebugMode) {
       print("RESPONSE STATUS CODE : ${response.statusCode}");
+      print("RESPONSE DATA LOGIN : $decoded");
     }
-    if (response.statusCode == 200) {
-      if (kDebugMode) {
-        print("RESPONSE DATA LOGIN : ${response.data}");
-      }
-      return jsonDecode(response.data);
-    } else {
-      return jsonDecode(response.data);
-    }
+
+    return {
+      "value": decoded['code'] == "000" ? 1 : 0,
+      "message": decoded['message'],
+      "data": decoded['data'],
+    };
   }
 
   static Future<dynamic> postJson(
@@ -315,32 +321,40 @@ class AuthRepository {
     String bprId,
     String noHp,
     String noRek,
+    String userlogin,
+    String kdKantor,
   ) async {
     Map<String, dynamic> json = {
-      "token": token,
+      "userlogin": userlogin,
       "bpr_id": bprId,
-      "no_hp": noHp,
+      "term": "WEB",
+      "kd_kantor": kdKantor,
       "no_rek": noRek,
+      "no_hp": noHp,
     };
 
     Dio dio = Dio();
     dio.options.headers['x-username'] = xusername;
     dio.options.headers['x-password'] = xpassword;
+
     if (kDebugMode) {
       print("ENDPOINT URL : $url");
+      print("REQUEST UPDATE CETAK MPIN : $json");
     }
+
     final response = await dio.post(url, data: json);
+    final decoded = response.data is String ? jsonDecode(response.data) : response.data;
+
     if (kDebugMode) {
       print("RESPONSE STATUS CODE : ${response.statusCode}");
+      print("RESPONSE DATA LOGIN : $decoded");
     }
-    if (response.statusCode == 200) {
-      if (kDebugMode) {
-        print("RESPONSE DATA LOGIN : ${response.data}");
-      }
-      return jsonDecode(response.data);
-    } else {
-      return jsonDecode(response.data);
-    }
+
+    return {
+      "value": decoded['code'] == "000" ? 1 : 0,
+      "message": decoded['message'],
+      "data": decoded['data'],
+    };
   }
 
   static Future<dynamic> gantiMpinCMS(
@@ -386,44 +400,45 @@ class AuthRepository {
   static Future<dynamic> generatedMPIN(
     String token,
     String url,
-    String username,
+    String userlogin,
     String kdKantor,
     String bprId,
     String noHp,
     String noRek,
-    String mpin,
   ) async {
     Map<String, dynamic> json = {
-      "token": token,
+      "userlogin": userlogin,
       "bpr_id": bprId,
       "kd_kantor": kdKantor,
-      "term": "",
-      "userlogin": username,
+      "term": "web",
       "data": {
         "no_hp": noHp,
         "no_rek": noRek,
-        "mpin": mpin,
       }
     };
 
     Dio dio = Dio();
     dio.options.headers['x-username'] = xusername;
     dio.options.headers['x-password'] = xpassword;
+
     if (kDebugMode) {
       print("ENDPOINT URL : $url");
+      print("REQUEST GENERATED MPIN : $json");
     }
+
     final response = await dio.post(url, data: json);
+    final decoded = response.data is String ? jsonDecode(response.data) : response.data;
+
     if (kDebugMode) {
       print("RESPONSE STATUS CODE : ${response.statusCode}");
+      print("RESPONSE DATA LOGIN : $decoded");
     }
-    if (response.statusCode == 200) {
-      if (kDebugMode) {
-        print("RESPONSE DATA LOGIN : ${response.data}");
-      }
-      return jsonDecode(response.data);
-    } else {
-      return jsonDecode(response.data);
-    }
+
+    return {
+      "value": decoded['code'] == "000" ? 1 : 0,
+      "message": decoded['message'],
+      "data": decoded['data'],
+    };
   }
 
   static Future<dynamic> resetMpin(

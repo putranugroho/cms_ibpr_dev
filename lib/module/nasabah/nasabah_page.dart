@@ -47,9 +47,7 @@ class NasabahPage extends StatelessWidget {
                               ElevatedButton(
                                 onPressed: value.onStepContinue,
                                 style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          colorPrimary),
+                                  backgroundColor: MaterialStateProperty.all<Color>(colorPrimary),
                                 ),
                                 child: const Text(
                                   'Simpan',
@@ -66,9 +64,7 @@ class NasabahPage extends StatelessWidget {
                                 ElevatedButton(
                                   onPressed: value.confirm,
                                   style: ButtonStyle(
-                                    backgroundColor:
-                                        MaterialStateProperty.all<Color>(
-                                            Colors.red),
+                                    backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
                                   ),
                                   child: const Text(
                                     'Hapus',
@@ -82,9 +78,7 @@ class NasabahPage extends StatelessWidget {
                             ElevatedButton(
                               onPressed: value.onStepContinue,
                               style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        colorPrimary),
+                                backgroundColor: MaterialStateProperty.all<Color>(colorPrimary),
                               ),
                               child: const Text(
                                 'Lanjut',
@@ -122,7 +116,7 @@ class NasabahPage extends StatelessWidget {
                           //               padding: const EdgeInsets.symmetric(
                           //                   vertical: 12),
                           //               child: Text(
-                          //                 "(${e.kdBank} - ${e.kdKantor}), ${e.namaKantor}",
+                          //                 "(${e.bpr_id} - ${e.kdKantor}), ${e.namaKantor}",
                           //                 maxLines: 1,
                           //                 overflow: TextOverflow.ellipsis,
                           //               ),
@@ -167,16 +161,14 @@ class NasabahPage extends StatelessWidget {
                                 child: Container(
                                   width: 100,
                                   alignment: Alignment.center,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
                                     color: colorPrimary,
                                   ),
                                   child: const Text(
                                     "Tampilkan",
-                                    style: TextStyle(
-                                        fontSize: 12, color: Colors.white),
+                                    style: TextStyle(fontSize: 12, color: Colors.white),
                                   ),
                                 ),
                               ),
@@ -215,9 +207,7 @@ class NasabahPage extends StatelessWidget {
                           TextFormField(
                             enabled: !value.editData,
                             controller: value.noHp,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly
-                            ],
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             validator: (e) {
                               if (e!.isEmpty) {
                                 return "Please fill this field";
@@ -235,9 +225,7 @@ class NasabahPage extends StatelessWidget {
                           TextFormField(
                             enabled: !value.editData,
                             controller: value.nik,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly
-                            ],
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             validator: (e) {
                               if (e!.isEmpty) {
                                 return "Please fill this field";
@@ -305,8 +293,7 @@ class NasabahPage extends StatelessWidget {
                                 .map((e) => DropdownMenuItem(
                                       value: e,
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 12),
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
                                         child: Text(
                                           e.keterangan,
                                           maxLines: 1,
@@ -322,9 +309,7 @@ class NasabahPage extends StatelessWidget {
                         ],
                       ),
                       isActive: value.currentStep >= 0,
-                      state: value.currentStep > 0
-                          ? StepState.complete
-                          : StepState.indexed,
+                      state: value.currentStep > 0 ? StepState.complete : StepState.indexed,
                     ),
                     Step(
                       title: const Text("Foto KTP"),
@@ -405,32 +390,31 @@ class NasabahPage extends StatelessWidget {
                                           height: 220,
                                           alignment: Alignment.center,
                                           decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                            border: Border.all(
-                                                width: 1, color: Colors.grey),
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(width: 1, color: Colors.grey),
                                           ),
                                           child: value.editData
                                               ? Transform.flip(
                                                   flipX: true,
                                                   child: Image.network(
-                                                    "$photo/${value.nasabahModel!.fhoto1}",
+                                                    NetworkURL.photoView(
+                                                      type: "ktp",
+                                                      fileOrPath: value.nasabahModel!.fhoto1,
+                                                    ),
                                                     fit: BoxFit.cover,
                                                     width: 400,
                                                     height: 220,
                                                   ),
                                                 )
                                               : const Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
+                                                  mainAxisAlignment: MainAxisAlignment.center,
                                                   children: [
                                                     Icon(
                                                       Icons.camera_alt,
                                                       size: 50,
                                                     ),
                                                     SizedBox(height: 16),
-                                                    Text(
-                                                        "Klik disini untuk buka kamera"),
+                                                    Text("Klik disini untuk buka kamera"),
                                                   ],
                                                 ),
                                         ),
@@ -506,9 +490,7 @@ class NasabahPage extends StatelessWidget {
                         ],
                       ),
                       isActive: value.currentStep >= 1,
-                      state: value.currentStep > 1
-                          ? StepState.complete
-                          : StepState.indexed,
+                      state: value.currentStep > 1 ? StepState.complete : StepState.indexed,
                     ),
                     Step(
                       title: const Text("Foto Selfie KTP"),
@@ -532,8 +514,7 @@ class NasabahPage extends StatelessWidget {
                                           // alignment: Alignment.center,
                                           // transform:
                                           //     Matrix4.rotationY(math.pi),
-                                          child:
-                                              CameraPreview(value.controller!),
+                                          child: CameraPreview(value.controller!),
                                         )
                                       : Stack(
                                           children: [
@@ -572,32 +553,31 @@ class NasabahPage extends StatelessWidget {
                                         height: 400,
                                         alignment: Alignment.center,
                                         decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          border: Border.all(
-                                              width: 1, color: Colors.grey),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(width: 1, color: Colors.grey),
                                         ),
                                         child: value.editData
                                             ? Transform.flip(
                                                 flipX: true,
                                                 child: Image.network(
-                                                  "$photo/${value.nasabahModel!.fhoto2}",
+                                                  NetworkURL.photoView(
+                                                    type: "selfie",
+                                                    fileOrPath: value.nasabahModel!.fhoto2,
+                                                  ),
                                                   fit: BoxFit.cover,
                                                   width: 250,
                                                   height: 400,
                                                 ),
                                               )
                                             : const Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
+                                                mainAxisAlignment: MainAxisAlignment.center,
                                                 children: [
                                                   Icon(
                                                     Icons.camera_alt,
                                                     size: 50,
                                                   ),
                                                   SizedBox(height: 16),
-                                                  Text(
-                                                      "Klik disini untuk buka kamera"),
+                                                  Text("Klik disini untuk buka kamera"),
                                                 ],
                                               ),
                                       ),
@@ -673,9 +653,7 @@ class NasabahPage extends StatelessWidget {
                         ],
                       ),
                       isActive: value.currentStep >= 2,
-                      state: value.currentStep > 2
-                          ? StepState.complete
-                          : StepState.indexed,
+                      state: value.currentStep > 2 ? StepState.complete : StepState.indexed,
                     ),
                   ],
                 ),
@@ -694,8 +672,7 @@ class NasabahPage extends StatelessWidget {
                     const Expanded(
                       child: Text(
                         "Nasabah",
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                     ),
                     ButtonPrimary(
@@ -754,15 +731,11 @@ class NasabahPage extends StatelessWidget {
                                       frozenColumnsCount: 2,
                                       shrinkWrapRows: true,
                                       // controller: value.dataGridController,
-                                      gridLinesVisibility:
-                                          GridLinesVisibility.both,
-                                      headerGridLinesVisibility:
-                                          GridLinesVisibility.both,
+                                      gridLinesVisibility: GridLinesVisibility.both,
+                                      headerGridLinesVisibility: GridLinesVisibility.both,
                                       selectionMode: SelectionMode.single,
-                                      onSelectionChanged:
-                                          value.onSelectionChanged,
-                                      source: DetailDataSource(
-                                          value.list.cast<NsaabahModel>()),
+                                      onSelectionChanged: value.onSelectionChanged,
+                                      source: DetailDataSource(value.list.cast<NsaabahModel>()),
                                       columns: <GridColumn>[
                                         GridColumn(
                                             width: 50,
@@ -770,78 +743,50 @@ class NasabahPage extends StatelessWidget {
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: const Text('No',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child: const Text('No', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                         GridColumn(
                                             columnName: 'nama',
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: const Text(
-                                                    'Nama Lengkap ',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child:
+                                                    const Text('Nama Lengkap ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                         GridColumn(
                                             columnName: 'no_rek',
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: const Text(
-                                                    'No Rekening ',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child:
+                                                    const Text('No Rekening ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                         GridColumn(
                                             width: 300,
                                             columnName: 'nama_rek',
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: const Text(
-                                                    'Nama Rekening ',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child: const Text('Nama Rekening ',
+                                                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                         GridColumn(
                                             columnName: 'phone',
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: const Text(
-                                                    'Nomor Ponsel',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child:
+                                                    const Text('Nomor Ponsel', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                         GridColumn(
                                             width: 200,
                                             columnName: 'nik',
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: const Text(
-                                                    'No. Identitas',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child:
+                                                    const Text('No. Identitas', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                         GridColumn(
                                             columnName: 'status',
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: const Text('Status',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child: const Text('Status', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                       ],
                                     ),
                                   ),

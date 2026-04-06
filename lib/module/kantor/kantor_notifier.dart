@@ -101,10 +101,8 @@ class KantorNotifier extends ChangeNotifier {
     editData = true;
     namakantor.text = kantorModel!.namaKantor;
     kdKantor.text = kantorModel!.kdKantor;
-    // print(kantorModel!.kdBank);
-    sandiBankModel = listSandi
-        .where((element) => element.kodeBank == kantorModel!.kdBank)
-        .first;
+    // print(kantorModel!.bpr_id);
+    sandiBankModel = listSandi.where((element) => element.kodeBank == kantorModel!.bpr_id).first;
     notifyListeners();
   }
 
@@ -118,11 +116,7 @@ class KantorNotifier extends ChangeNotifier {
       cellValues = selectedData.map((cell) => cell.value).toList();
       // var kategoriNew = cellValues![2];
       // phoneSelect = cellValues![6];
-      kantorModel = list
-          .where((element) =>
-              element.kdBank == cellValues![1] &&
-              element.kdKantor == cellValues![2])
-          .first;
+      kantorModel = list.where((element) => element.bpr_id == cellValues![1] && element.kdKantor == cellValues![2]).first;
       print("${cellValues![1]}");
       edit();
       notifyListeners();
@@ -151,7 +145,7 @@ class KantorNotifier extends ChangeNotifier {
         for (Map<String, dynamic> i in value['sandi_bank']) {
           listSandi.add(SandiBankModel.fromJson(i));
         }
-        listResult = list.where((element) => element.kdBank != null).toList();
+        listResult = list.where((element) => element.bpr_id != null).toList();
         isLoading = false;
         notifyListeners();
       } else {
@@ -229,13 +223,7 @@ class KantorNotifier extends ChangeNotifier {
   delete() async {
     DialogCustom().showLoading(context);
     KnatorRepository.deleteKantorCMS(
-            token,
-            NetworkURL.deleteKantorCMS(),
-            users!.bprId,
-            users!.usersId,
-            sandiBankModel!.kodeBank,
-            kdKantor.text.trim(),
-            namakantor.text.trim())
+            token, NetworkURL.deleteKantorCMS(), users!.bprId, users!.usersId, sandiBankModel!.kodeBank, kdKantor.text.trim(), namakantor.text.trim())
         .then((value) {
       Navigator.pop(context);
       if (value['value'] == 1) {

@@ -156,8 +156,7 @@ class KantorPage extends StatelessWidget {
                     Expanded(
                       child: Text(
                         "Kantor",
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                     ),
                     ButtonPrimary(
@@ -206,15 +205,11 @@ class KantorPage extends StatelessWidget {
                                       defaultColumnWidth: 150,
                                       // frozenColumnsCount: 2,
                                       // controller: value.dataGridController,
-                                      gridLinesVisibility:
-                                          GridLinesVisibility.both,
-                                      headerGridLinesVisibility:
-                                          GridLinesVisibility.both,
+                                      gridLinesVisibility: GridLinesVisibility.both,
+                                      headerGridLinesVisibility: GridLinesVisibility.both,
                                       selectionMode: SelectionMode.single,
-                                      onSelectionChanged:
-                                          value.onSelectionChanged,
-                                      source: DetailDataSource(
-                                          value.list.cast<KantorModel>()),
+                                      onSelectionChanged: value.onSelectionChanged,
+                                      source: DetailDataSource(value.list.cast<KantorModel>()),
                                       columns: <GridColumn>[
                                         GridColumn(
                                             width: 50,
@@ -222,44 +217,28 @@ class KantorPage extends StatelessWidget {
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: Text('No',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child: Text('No', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                         GridColumn(
                                             width: 200,
                                             columnName: 'kd_bank',
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: Text('Kode Bank ',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child: Text('Kode Bank ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                         GridColumn(
                                             width: 300,
                                             columnName: 'kd_kantor',
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: Text('Kode Kantor',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child: Text('Kode Kantor', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                         GridColumn(
                                             width: 300,
                                             columnName: 'nama_kantor',
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: Text('Nama Kantor',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child: Text('Nama Kantor', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                       ],
                                     ),
                                   ),
@@ -284,7 +263,7 @@ class DetailDataSource extends DataGridSource {
       DataGridRow row = DataGridRow(
         cells: [
           DataGridCell(columnName: 'no', value: index.toString()),
-          DataGridCell(columnName: 'kd_bank', value: data.kdBank),
+          DataGridCell(columnName: 'kd_bank', value: data.bpr_id),
           DataGridCell(columnName: 'kd_kantor', value: data.kdKantor),
           DataGridCell(columnName: 'nama_kantor', value: data.namaKantor),
           // DataGridCell(columnName: 'days', value: data.day),
@@ -316,8 +295,7 @@ class DetailDataSource extends DataGridSource {
             margin: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             alignment: Alignment.center,
             padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-                color: colorPrimary, borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(color: colorPrimary, borderRadius: BorderRadius.circular(8)),
             child: Text(e.value.toString()),
           );
         } else {

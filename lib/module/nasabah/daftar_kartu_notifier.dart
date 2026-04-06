@@ -41,9 +41,7 @@ class DaftarKartuNotifier extends ChangeNotifier {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Text("Masukkan PIN Anda",
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold)),
+                Text("Masukkan PIN Anda", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 20),
                 SizedBox(
                   width: 400,
@@ -108,17 +106,13 @@ class DaftarKartuNotifier extends ChangeNotifier {
   var mpin = "";
   Future validasiPin() async {
     DialogCustom().showLoading(context);
-    var belakangHp =
-        "${noHp.text.toString().substring(noHp.text.length - 4, noHp.text.length)}";
+    var belakangHp = "${noHp.text.toString().substring(noHp.text.length - 4, noHp.text.length)}";
     // print(belakangHp);
     // print(_enteredPin);
-    String mPIN =
-        "${(((int.parse((_enteredPin)) * 2) + 999999) - 111111).toString()}$belakangHp";
+    String mPIN = "${(((int.parse((_enteredPin)) * 2) + 999999) - 111111).toString()}$belakangHp";
     // print(token);
     print(mPIN);
-    AuthRepository.mPinGeneratedValidated(
-            token, NetworkURL.mPinGeneratedValidated(), users!.bprId, mPIN)
-        .then(
+    AuthRepository.mPinGeneratedValidated(token, NetworkURL.mPinGeneratedValidated(), users!.bprId, mPIN).then(
       (value) {
         mpin = value['data']['data'];
         AuthRepository.inqueryMpinDev(
@@ -132,9 +126,7 @@ class DaftarKartuNotifier extends ChangeNotifier {
           Navigator.pop(context);
           if (values['value'] == 1) {
             // simpan();
-            AuthRepository.addCardNew(token, NetworkURL.addCardNew(), nokartu,
-                    noRek.text, users!.bprId)
-                .then((e) {
+            AuthRepository.addCardNew(token, NetworkURL.addCardNew(), nokartu, noRek.text, users!.bprId).then((e) {
               // Navigator.pop(context);
               if (e['code'] == "000") {
                 // Navigator.pop(context);
@@ -166,8 +158,7 @@ class DaftarKartuNotifier extends ChangeNotifier {
     //enable dialog scanner
     isScanner = success;
     if (isScanner) {
-      informationDialog(
-          context, "Silahkan Scan Kartu NFC", "Tap Kartu pada NFC Reader");
+      informationDialog(context, "Silahkan Scan Kartu NFC", "Tap Kartu pada NFC Reader");
       actionScanner = true;
     } else {}
     notifyListeners();
@@ -203,6 +194,7 @@ class DaftarKartuNotifier extends ChangeNotifier {
       NetworkURL.inqueryHp(),
       users!.bprId,
       noHp.text.trim(),
+      users!.usersId,
     ).then((value) {
       Navigator.pop(context);
       if (value['value'] == 1) {

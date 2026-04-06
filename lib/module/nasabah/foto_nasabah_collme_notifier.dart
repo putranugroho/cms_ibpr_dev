@@ -34,9 +34,7 @@ class FotoNasabahCollmeNotifier extends ChangeNotifier {
     list.clear();
     isLoading = true;
     notifyListeners();
-    NasabahRepository.getFotoNasabah(
-            token, NetworkURL.getFotoNasabah(), users!.bprId, limit, offset)
-        .then((value) {
+    NasabahRepository.getFotoNasabah(token, NetworkURL.getFotoNasabah(), users!.bprId, limit, offset).then((value) {
       if (value['value'] == 1) {
         for (Map<String, dynamic> i in value['foto']) {
           list.add(FotoNasabahCollmeModel.fromJson(i));
@@ -79,8 +77,7 @@ class FotoNasabahCollmeNotifier extends ChangeNotifier {
                       children: [
                         Text(
                           "Konfirmasi",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -149,11 +146,7 @@ class FotoNasabahCollmeNotifier extends ChangeNotifier {
 
   cekTolak() {
     DialogCustom().showLoading(context);
-    NasabahRepository.rejectedFotoCollme(
-            token,
-            NetworkURL.updateFotoNasabahCollme(),
-            fotoNasabahCollmeModel!.id.toString(),
-            alasan.text.trim())
+    NasabahRepository.rejectedFotoCollme(token, NetworkURL.updateFotoNasabahCollme(), fotoNasabahCollmeModel!.id.toString(), alasan.text.trim())
         .then((value) {
       Navigator.pop(context);
       if (value['value'] == 1) {
@@ -187,8 +180,7 @@ class FotoNasabahCollmeNotifier extends ChangeNotifier {
                       children: [
                         Text(
                           "Konfirmasi",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -238,13 +230,15 @@ class FotoNasabahCollmeNotifier extends ChangeNotifier {
   cekTerima() {
     if (keyForm.currentState!.validate()) {
       DialogCustom().showLoading(context);
-      NasabahRepository.approveFotoCollme(token, NetworkURL.approveFotoCollme(),
-              fotoNasabahCollmeModel!.id.toString())
-          .then((value) {
+      NasabahRepository.approveFotoCollme(token, NetworkURL.approveFotoCollme(), fotoNasabahCollmeModel!.id.toString()).then((value) {
         if (value['value'] == 1) {
-          AuthRepository.inqueryHp(token, NetworkURL.inqueryHp(), users!.bprId,
-                  fotoNasabahCollmeModel!.phone)
-              .then((e) {
+          AuthRepository.inqueryHp(
+            token,
+            NetworkURL.inqueryHp(),
+            users!.bprId,
+            fotoNasabahCollmeModel!.phone,
+            users!.usersId,
+          ).then((e) {
             if (e['value'] == 1) {
               nasabahModel = NsaabahModel.fromJson(e['data']);
               NasabahRepository.updateAkunCMS(
@@ -296,9 +290,7 @@ class FotoNasabahCollmeNotifier extends ChangeNotifier {
     if (last) {
     } else {
       isLoadingMore = true;
-      NasabahRepository.getFotoNasabah(token, NetworkURL.getFotoNasabah(),
-              users!.bprId, limit, list.length)
-          .then((value) {
+      NasabahRepository.getFotoNasabah(token, NetworkURL.getFotoNasabah(), users!.bprId, limit, list.length).then((value) {
         if (value['value'] == 1) {
           for (Map<String, dynamic> i in value['foto']) {
             list.add(FotoNasabahCollmeModel.fromJson(i));

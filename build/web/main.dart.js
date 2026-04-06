@@ -36144,7 +36144,7 @@ return A.q($async$aMy,r)},
 a0V(a,b,c,d,e,f,g,h,i,j,k,a0){var s=0,r=A.r(t.z),q,p,o,n,m,l
 var $async$a0V=A.t(function(a1,a2){if(a1===1)return A.o(a2,r)
 for(;;)switch(s){case 0:o=t.z
-n=A.a8(["token",a,"bpr_id",c,"userlogin",d,"userid",f,"username",f,"password",e,"pass",A.b5A(e),"namauser",g,"kdkantor",i,"kdbank",h,"tglexp",j,"lvluser",k,"fasilitas",B.Y.b8(0,a0,null)],t.N,o)
+n=A.a8(["token",a,"bpr_id",c,"userlogin",d,"userid",f,"username",f,"password",e,"pass",A.b5A(e),"namauser",g,"kdkantor",i,"bpr_id",h,"tglexp",j,"lvluser",k,"fasilitas",B.Y.b8(0,a0,null)],t.N,o)
 m=A.dc(null)
 l=m.aX$
 l===$&&A.a()
@@ -55501,7 +55501,7 @@ gt(a){var s=this
 return B.n.gt(s.a)^B.n.gt(s.b)^B.n.gt(s.c)^B.n.gt(s.d)^B.n.gt(s.e)}}
 A.nu.prototype={
 cP(){var s=this
-return A.a8(["userid",s.a,"pass",s.b,"namauser",s.c,"kdkantor",s.d,"tglexp",s.e,"lvluser",s.f,"stsaktif",s.r,"stsrec",s.w,"stslogin",s.x,"terminal_id",s.y,"kdbank",s.z,"nama_kantor",s.Q],t.N,t.z)},
+return A.a8(["userid",s.a,"pass",s.b,"namauser",s.c,"kdkantor",s.d,"tglexp",s.e,"lvluser",s.f,"stsaktif",s.r,"stsrec",s.w,"stslogin",s.x,"terminal_id",s.y,"bpr_id",s.z,"nama_kantor",s.Q],t.N,t.z)},
 j(a,b){var s,r=this
 if(b==null)return!1
 if(r!==b)s=b instanceof A.nu&&r.a===b.a&&r.b===b.b&&r.c===b.c&&r.d===b.d&&r.e===b.e&&r.f===b.f&&r.r===b.r&&r.w===b.w&&r.x===b.x&&r.y===b.y&&r.z===b.z&&J.c(r.Q,b.Q)
@@ -58930,7 +58930,7 @@ A.aMe.prototype={
 $1(a){var s,r,q,p,o=J.aa(a)
 if(J.c(o.h(a,"value"),1)){for(o=J.b4(o.h(a,"data")),s=this.a,r=s.y;o.A();){q=o.gO(o)
 p=J.aa(q)
-r.push(new A.nu(J.aA(p.h(q,"userid")),J.aA(p.h(q,"pass")),J.aA(p.h(q,"namauser")),J.aA(p.h(q,"kdkantor")),J.aA(p.h(q,"tglexp")),J.aA(p.h(q,"lvluser")),J.aA(p.h(q,"stsaktif")),J.aA(p.h(q,"stsrec")),A.ck(p.h(q,"stslogin")),J.aA(p.h(q,"terminal_id")),J.aA(p.h(q,"kdbank")),p.h(q,"nama_kantor")))}s.x=!1
+r.push(new A.nu(J.aA(p.h(q,"userid")),J.aA(p.h(q,"pass")),J.aA(p.h(q,"namauser")),J.aA(p.h(q,"kdkantor")),J.aA(p.h(q,"tglexp")),J.aA(p.h(q,"lvluser")),J.aA(p.h(q,"stsaktif")),J.aA(p.h(q,"stsrec")),A.ck(p.h(q,"stslogin")),J.aA(p.h(q,"terminal_id")),J.aA(p.h(q,"bpr_id")),p.h(q,"nama_kantor")))}s.x=!1
 s.G()}else{o=this.a
 o.x=!1
 o.G()}},
@@ -59083,7 +59083,7 @@ return new A.mE(s)}}
 A.ajZ.prototype={
 $1(a){var s=this.a,r=B.u.k(s.a),q=t.yU,p=a.Q
 p=p!=null?p:""
-q=A.b([new A.bD("no",r,q),new A.bD("kdbank",a.z,q),new A.bD("userid",a.a,q),new A.bD("namauser",a.c,q),new A.bD("kdkantor",a.d,q),new A.bD("nama_kantor",p,q),new A.bD("tglexp",a.e,q)],t.PS);++s.a
+q=A.b([new A.bD("no",r,q),new A.bD("bpr_id",a.z,q),new A.bD("userid",a.a,q),new A.bD("namauser",a.c,q),new A.bD("kdkantor",a.d,q),new A.bD("nama_kantor",p,q),new A.bD("tglexp",a.e,q)],t.PS);++s.a
 return new A.ct(q)},
 $S:652}
 A.ajN.prototype={

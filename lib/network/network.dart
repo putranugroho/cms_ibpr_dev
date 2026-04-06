@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'dart:core';
 
 const token = "715f8ab555438f985b579844ea227767";
 const xusername = "core@2023";
 const xpassword = "corevalue@20231234";
 const url = "https://ibprservices.medtrans.id";
 const url2 = "https://infoservices.medtrans.id";
+const url_go = "http://103.129.149.131:8090";
 const upload = "https://infoservices.medtrans.id/upload";
 const photo = "https://infoservices.medtrans.id/photo";
 
@@ -22,15 +24,15 @@ class NetworkURL {
   }
 
   static String getUsersAccess() {
-    return "$url/webServices/get_list_users_access_dev.php";
+    return "$url_go/user_search";
   }
 
   static String getListKantorAccess() {
-    return "$url/webServices/get_list_kantor_access_dev.php";
+    return "$url_go/kantor";
   }
 
   static String getListNasbah() {
-    return "$url/webServices/get_list_nasabah_dev.php";
+    return "$url_go/account_search";
   }
 
   static String getListMobileInfo() {
@@ -38,7 +40,7 @@ class NetworkURL {
   }
 
   static String generatedMpin() {
-    return "$url/webServices/generated_mpin_cms_dev.php";
+    return "$url_go/generate_mpin";
   }
 
   static String insertKantorCMS() {
@@ -54,19 +56,19 @@ class NetworkURL {
   }
 
   static String insertUsersId() {
-    return "$url/webServices/insert_usersid_cms.php";
+    return "$url_go/user_management";
   }
 
   static String updateUsersId() {
-    return "$url/webServices/update_usersid_cms.php";
+    return "$url_go/user_management";
   }
 
   static String getListFasilitas() {
-    return "$url/webServices/get_list_fasilitas_.php";
+    return "$url_go/master_menu";
   }
 
   static String getListFasilitasByUsers() {
-    return "$url/webServices/get_list_fasilitas_byusers_.php";
+    return "$url_go/fasilitas_akses";
   }
 
   static String getListAcctType() {
@@ -102,23 +104,40 @@ class NetworkURL {
   }
 
   static String insertGallery() {
-    return "$url/webServices/insert_gallery_akun.php";
+    return "$url_go/photo/upload";
+  }
+
+  static String photoView({
+    required String type,
+    required String? fileOrPath,
+  }) {
+    if (fileOrPath == null || fileOrPath.trim().isEmpty) {
+      return "";
+    }
+
+    final normalized = fileOrPath.replaceAll("\\", "/");
+    final fileName = normalized.split("/").last;
+
+    return Uri.parse("$url_go/photo/view").replace(queryParameters: {
+      "type": type,
+      "file": fileName,
+    }).toString();
   }
 
   static String insertAKunCMS() {
-    return "$url/webServices/insert_akun_cms.php";
+    return "$url_go/account";
   }
 
   static String inqueryRekCMS() {
-    return "$url/webServices/inquery_rek_cms.php";
+    return "$url_go/inquiry_account";
   }
 
   static String updateAkunCms() {
-    return "$url/webServices/update_akun_cms.php";
+    return "$url_go/account";
   }
 
   static String deleteAkunCms() {
-    return "$url/webServices/delete_akun_cms.php";
+    return "$url_go/account";
   }
 
   static String generatedMPIN() {
@@ -130,11 +149,11 @@ class NetworkURL {
   }
 
   static String inqueryHp() {
-    return "$url/webServices/inquery_hp_cms.php";
+    return "$url_go/account_search";
   }
 
   static String updateMpinCetak() {
-    return "$url/webServices/update_mpin_cetak.php";
+    return "$url_go/update_print_mpin";
   }
 
   static String validateCard() {

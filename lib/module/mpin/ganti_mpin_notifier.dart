@@ -27,9 +27,7 @@ class GantiMPINNotifier extends ChangeNotifier {
     Navigator.pop(context);
     DialogCustom().showLoading(context);
     nokartu = value;
-    AuthRepository.validateCard(token, NetworkURL.validateCard(),
-            noRek.text.trim(), nokartu, users!.bprId)
-        .then((value) {
+    AuthRepository.validateCard(token, NetworkURL.validateCard(), noRek.text.trim(), nokartu, users!.bprId).then((value) {
       Navigator.pop(context);
       // print(value);
       if (value['code'] == '000') {
@@ -74,8 +72,7 @@ class GantiMPINNotifier extends ChangeNotifier {
                               return null;
                             }
                           },
-                          decoration: const InputDecoration(
-                              hintText: "MPIN Lama", errorText: ""),
+                          decoration: const InputDecoration(hintText: "MPIN Lama", errorText: ""),
                         ),
                         const SizedBox(
                           height: 16,
@@ -95,8 +92,7 @@ class GantiMPINNotifier extends ChangeNotifier {
                               return null;
                             }
                           },
-                          decoration: const InputDecoration(
-                              hintText: "MPIN Baru", errorText: ""),
+                          decoration: const InputDecoration(hintText: "MPIN Baru", errorText: ""),
                         ),
                         const SizedBox(
                           height: 16,
@@ -113,16 +109,14 @@ class GantiMPINNotifier extends ChangeNotifier {
                             if (e!.isEmpty) {
                               return "wajib diisi";
                             } else {
-                              if (mPinBaru.text.trim() !=
-                                  konfirmMpinBaru.text.trim()) {
+                              if (mPinBaru.text.trim() != konfirmMpinBaru.text.trim()) {
                                 return "Konfirmasi MPIN harus sama";
                               } else {
                                 return null;
                               }
                             }
                           },
-                          decoration: const InputDecoration(
-                              hintText: "Konfirmasi PIN Baru", errorText: ""),
+                          decoration: const InputDecoration(hintText: "Konfirmasi PIN Baru", errorText: ""),
                         ),
                         const SizedBox(
                           height: 16,
@@ -162,8 +156,7 @@ class GantiMPINNotifier extends ChangeNotifier {
     //enable dialog scanner
     isScanner = success;
     if (isScanner) {
-      informationDialog(
-          context, "Silahkan Scan Kartu NFC", "Tap Kartu pada NFC Reader");
+      informationDialog(context, "Silahkan Scan Kartu NFC", "Tap Kartu pada NFC Reader");
       actionScanner = true;
     } else {}
     notifyListeners();
@@ -201,6 +194,7 @@ class GantiMPINNotifier extends ChangeNotifier {
       NetworkURL.inqueryHp(),
       users!.bprId,
       noHp.text.trim(),
+      users!.usersId,
     ).then((value) {
       Navigator.pop(context);
       if (value['value'] == 1) {
@@ -236,8 +230,7 @@ class GantiMPINNotifier extends ChangeNotifier {
                     children: [
                       const Text(
                         "Masukan PASSWORD Username Anda",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(
                         height: 16,
@@ -277,9 +270,7 @@ class GantiMPINNotifier extends ChangeNotifier {
   String pesan = "";
   validasiUser() async {
     if (passForm.currentState!.validate()) {
-      AuthRepository.login(
-              token, NetworkURL.login(), users!.usersId, password.text.trim())
-          .then((value) async {
+      AuthRepository.login(token, NetworkURL.login(), users!.usersId, password.text.trim()).then((value) async {
         Navigator.pop(context);
         if (value['value'] == 1) {
           await generated();
@@ -299,22 +290,15 @@ class GantiMPINNotifier extends ChangeNotifier {
   generated() async {
     DialogCustom().showLoading(context);
     // print(mpin);
-    var belakangHp =
-        "${noHp.text.toString().substring(noHp.text.length - 4, noHp.text.length)}";
+    var belakangHp = "${noHp.text.toString().substring(noHp.text.length - 4, noHp.text.length)}";
     // print(belakangHp);
     // print(_enteredPin);
-    String mPINLama =
-        "${(((int.parse((mPinLama.text)) * 2) + 999999) - 111111).toString()}$belakangHp";
-    String mPINBaru =
-        "${(((int.parse((mPinBaru.text)) * 2) + 999999) - 111111).toString()}$belakangHp";
-    AuthRepository.mPinGeneratedValidated(
-            token, NetworkURL.mPinGeneratedValidated(), users!.bprId, mPINLama)
-        .then((value) {
+    String mPINLama = "${(((int.parse((mPinLama.text)) * 2) + 999999) - 111111).toString()}$belakangHp";
+    String mPINBaru = "${(((int.parse((mPinBaru.text)) * 2) + 999999) - 111111).toString()}$belakangHp";
+    AuthRepository.mPinGeneratedValidated(token, NetworkURL.mPinGeneratedValidated(), users!.bprId, mPINLama).then((value) {
       var mpinLamaNew = value['data']['data'];
 
-      AuthRepository.mPinGeneratedValidated(token,
-              NetworkURL.mPinGeneratedValidated(), users!.bprId, mPINBaru)
-          .then((values) {
+      AuthRepository.mPinGeneratedValidated(token, NetworkURL.mPinGeneratedValidated(), users!.bprId, mPINBaru).then((values) {
         var mPinBaruNew = values['data']['data'];
         AuthRepository.gantiMpinCMS(
           token,

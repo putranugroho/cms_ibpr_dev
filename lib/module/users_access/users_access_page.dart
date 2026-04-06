@@ -44,10 +44,9 @@ class UsersAccessPage extends StatelessWidget {
                           .map((e) => DropdownMenuItem(
                                 value: e,
                                 child: Container(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
                                   child: Text(
-                                    "(${e.kdBank} - ${e.kdKantor}) ${e.namaKantor}",
+                                    "(${e.bpr_id} - ${e.kdKantor}) ${e.namaKantor}",
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -121,9 +120,7 @@ class UsersAccessPage extends StatelessWidget {
                             onPressed: () {
                               value.gantiobscure();
                             },
-                            icon: value.obscure
-                                ? Icon(Icons.visibility)
-                                : Icon(Icons.visibility_off))),
+                            icon: value.obscure ? Icon(Icons.visibility) : Icon(Icons.visibility_off))),
                     validator: (e) {
                       if (e!.isEmpty) {
                         return "Please fill this field";
@@ -188,19 +185,20 @@ class UsersAccessPage extends StatelessWidget {
                                         activeColor: colorPrimary,
                                         value: value.listAddFasilitas.isEmpty
                                             ? false
-                                            : value.listAddFasilitas
-                                                    .where((element) =>
-                                                        element == data)
-                                                    .isNotEmpty
+                                            : value.listAddFasilitas.any((element) =>
+                                                    (element.modul ?? "") == (data.modul ?? "") &&
+                                                    (element.menu ?? "") == (data.menu ?? "") &&
+                                                    (element.submenu ?? "") == (data.submenu ?? "") &&
+                                                    (element.urut ?? "") == (data.urut ?? ""))
                                                 ? true
                                                 : false,
                                         onChanged: (e) {
                                           value.addFasilitas(data);
                                         }),
-                                    Container(
-                                        width: 120,
-                                        child: Text("${data.menu}")),
+                                    Container(width: 120, child: Text("${data.menu}")),
                                     Expanded(child: Text("${data.submenu}")),
+                                    Container(width: 120, child: Text("${data.menu}")),
+                                    Expanded(child: Text("${data.subsubmenu}")),
                                   ],
                                 ),
                                 SizedBox(
@@ -235,8 +233,7 @@ class UsersAccessPage extends StatelessWidget {
                     Expanded(
                       child: Text(
                         "Users Access",
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                     ),
                     value.isLoadingFasilitas
@@ -288,15 +285,11 @@ class UsersAccessPage extends StatelessWidget {
                                       defaultColumnWidth: 150,
                                       frozenColumnsCount: 2,
                                       // controller: value.dataGridController,
-                                      gridLinesVisibility:
-                                          GridLinesVisibility.both,
-                                      headerGridLinesVisibility:
-                                          GridLinesVisibility.both,
+                                      gridLinesVisibility: GridLinesVisibility.both,
+                                      headerGridLinesVisibility: GridLinesVisibility.both,
                                       selectionMode: SelectionMode.single,
-                                      onSelectionChanged:
-                                          value.onSelectionChanged,
-                                      source: DetailDataSource(
-                                          value.list.cast<UsersAccessModel>()),
+                                      onSelectionChanged: value.onSelectionChanged,
+                                      source: DetailDataSource(value.list.cast<UsersAccessModel>()),
                                       columns: <GridColumn>[
                                         GridColumn(
                                             width: 50,
@@ -304,76 +297,47 @@ class UsersAccessPage extends StatelessWidget {
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: Text('No',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child: Text('No', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                         GridColumn(
                                             columnName: 'kd_bank',
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: Text('Kode Bank ',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child: Text('Kode Bank ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                         GridColumn(
                                             columnName: 'userid',
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: Text('Users ID ',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child: Text('Users ID ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                         GridColumn(
                                             width: 300,
                                             columnName: 'namauser',
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: Text('Nama Users ',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child: Text('Nama Users ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                         GridColumn(
                                             columnName: 'kd_kantor',
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: Text('Kode Kantor',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child: Text('Kode Kantor', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                         GridColumn(
                                             width: 200,
                                             columnName: 'nama_kantor',
                                             label: Container(
                                                 color: colorPrimary,
                                                 alignment: Alignment.center,
-                                                child: Text('Nama Kantor',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                child: Text('Nama Kantor', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                         GridColumn(
                                             width: 200,
                                             columnName: 'tglexp',
                                             label: Container(
                                                 color: colorPrimary,
-                                                alignment:
-                                                    Alignment.centerRight,
-                                                child: Text(
-                                                    'Tanggal Kadaluarsa',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white)))),
+                                                alignment: Alignment.centerRight,
+                                                child:
+                                                    Text('Tanggal Kadaluarsa', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)))),
                                       ],
                                     ),
                                   ),
@@ -419,13 +383,11 @@ class DetailDataSource extends DataGridSource {
       DataGridRow row = DataGridRow(
         cells: [
           DataGridCell(columnName: 'no', value: index.toString()),
-          DataGridCell(columnName: 'kdbank', value: data.kdbank),
+          DataGridCell(columnName: 'bpr_id', value: data.bpr_id),
           DataGridCell(columnName: 'userid', value: data.userid),
           DataGridCell(columnName: 'namauser', value: data.namauser),
           DataGridCell(columnName: 'kdkantor', value: data.kdkantor),
-          DataGridCell(
-              columnName: 'nama_kantor',
-              value: data.namaKantor != null ? data.namaKantor : ""),
+          DataGridCell(columnName: 'nama_kantor', value: data.namaKantor != null ? data.namaKantor : ""),
           DataGridCell(columnName: 'tglexp', value: data.tglexp),
           // DataGridCell(columnName: 'days', value: data.day),
           // DataGridCell(columnName: 'start_time', value: data.startTime),
@@ -456,8 +418,7 @@ class DetailDataSource extends DataGridSource {
             margin: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             alignment: Alignment.center,
             padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-                color: colorPrimary, borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(color: colorPrimary, borderRadius: BorderRadius.circular(8)),
             child: Text(e.value.toString()),
           );
         }

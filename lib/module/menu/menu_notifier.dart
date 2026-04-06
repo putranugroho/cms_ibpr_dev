@@ -38,6 +38,7 @@ class MenuNotifier extends ChangeNotifier {
           modul: json[i]['modul'],
           menu: json[i]['menu'],
           submenu: json[i]['submenu'],
+          subsubmenu: json[i]['subsubmenu'],
           urut: json[i]['urut'],
           flag: json[i]['flag'],
         ));
@@ -74,8 +75,7 @@ class MenuNotifier extends ChangeNotifier {
                     children: [
                       Text(
                         "Konfirmasi",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -122,10 +122,7 @@ class MenuNotifier extends ChangeNotifier {
 
   remove() async {
     Pref().remove();
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-        (route) => false);
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const LoginPage()), (route) => false);
     notifyListeners();
     // DialogCustom().showLoading(context);
     // AuthRepository.logOut(
@@ -196,8 +193,7 @@ class MenuNotifier extends ChangeNotifier {
                           return null;
                         }
                       },
-                      decoration: const InputDecoration(
-                          hintText: "Password Lama", errorText: ""),
+                      decoration: const InputDecoration(hintText: "Password Lama", errorText: ""),
                     ),
                     const SizedBox(
                       height: 16,
@@ -216,8 +212,7 @@ class MenuNotifier extends ChangeNotifier {
                           return null;
                         }
                       },
-                      decoration: const InputDecoration(
-                          hintText: "Password Baru", errorText: ""),
+                      decoration: const InputDecoration(hintText: "Password Baru", errorText: ""),
                     ),
                     const SizedBox(
                       height: 16,
@@ -240,8 +235,7 @@ class MenuNotifier extends ChangeNotifier {
                           }
                         }
                       },
-                      decoration: const InputDecoration(
-                          hintText: "Konfirmasi Password Baru", errorText: ""),
+                      decoration: const InputDecoration(hintText: "Konfirmasi Password Baru", errorText: ""),
                     ),
                     const SizedBox(
                       height: 16,
@@ -270,15 +264,8 @@ class MenuNotifier extends ChangeNotifier {
       var passwordNC = passC.text.trim();
       DialogCustom().showLoading(context);
       notifyListeners();
-      AuthRepository.gantiPassword(
-              token,
-              NetworkURL.gantipassword(),
-              users!.bprId,
-              users!.usersId,
-              encryptString(passwordBaru),
-              encryptString(passwordLama),
-              passwordNC,
-              users!.usersId)
+      AuthRepository.gantiPassword(token, NetworkURL.gantipassword(), users!.bprId, users!.usersId, encryptString(passwordBaru),
+              encryptString(passwordLama), passwordNC, users!.usersId)
           .then((value) {
         Navigator.pop(context);
         if (value['value'] == 1) {

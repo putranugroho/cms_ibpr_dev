@@ -149,7 +149,7 @@ class LimitRepository {
     String url,
     String bprId,
     String userlogin,
-    String kdBank,
+    String bpr_id,
     String kdKantor,
     String namaKantor,
   ) async {
@@ -158,7 +158,7 @@ class LimitRepository {
       "term": "",
       "bpr_id": bprId,
       "userlogin": userlogin,
-      "kd_bank": kdBank,
+      "kd_bank": bpr_id,
       "kd_kantor": kdKantor,
       "nama_kantor": namaKantor,
     };
@@ -188,7 +188,7 @@ class LimitRepository {
     String url,
     String bprId,
     String userlogin,
-    String kdBank,
+    String bpr_id,
     String kdKantor,
     String namaKantor,
   ) async {
@@ -197,7 +197,7 @@ class LimitRepository {
       "term": "",
       "bpr_id": bprId,
       "userlogin": userlogin,
-      "kd_bank": kdBank,
+      "kd_bank": bpr_id,
       "kd_kantor": kdKantor,
       "nama_kantor": namaKantor,
     };
@@ -227,7 +227,7 @@ class LimitRepository {
     String url,
     String bprId,
     String userlogin,
-    String kdBank,
+    String bpr_id,
     String kdKantor,
     String namaKantor,
   ) async {
@@ -236,7 +236,7 @@ class LimitRepository {
       "term": "",
       "bpr_id": bprId,
       "userlogin": userlogin,
-      "kd_bank": kdBank,
+      "kd_bank": bpr_id,
       "kd_kantor": kdKantor,
       "nama_kantor": namaKantor,
     };

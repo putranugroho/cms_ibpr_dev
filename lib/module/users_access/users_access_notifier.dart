@@ -121,24 +121,14 @@ class UsersAccessNotifier extends ChangeNotifier {
               modul: listAddFasilitas[i].modul,
               menu: listAddFasilitas[i].menu,
               submenu: listAddFasilitas[i].submenu,
+              subsubmenu: listAddFasilitas[i].subsubmenu,
               urut: listAddFasilitas[i].urut,
               flag: "true"));
         }
         Navigator.pop(context);
         DialogCustom().showLoading(context);
-        UsersAccessRepository.insertUsersId(
-                token,
-                NetworkURL.updateUsersId(),
-                users!.bprId,
-                users!.usersId,
-                password.text,
-                username.text.trim(),
-                namaUsers.text.trim(),
-                kantorModel!.kdBank,
-                kantorModel!.kdKantor,
-                tglKadaluarsa.text.trim(),
-                "0",
-                jsonEncode(listModel))
+        UsersAccessRepository.insertUsersId(token, NetworkURL.updateUsersId(), "update", users!.bprId, users!.usersId, password.text,
+                username.text.trim(), namaUsers.text.trim(), kantorModel!.kdKantor, tglKadaluarsa.text.trim(), "0", jsonEncode(listModel))
             .then((value) {
           Navigator.pop(context);
           if (value['value'] == 1) {
@@ -155,24 +145,14 @@ class UsersAccessNotifier extends ChangeNotifier {
               modul: listAddFasilitas[i].modul,
               menu: listAddFasilitas[i].menu,
               submenu: listAddFasilitas[i].submenu,
+              subsubmenu: listAddFasilitas[i].subsubmenu,
               urut: listAddFasilitas[i].urut,
               flag: "true"));
         }
         Navigator.pop(context);
         DialogCustom().showLoading(context);
-        UsersAccessRepository.insertUsersId(
-                token,
-                NetworkURL.insertUsersId(),
-                users!.bprId,
-                users!.usersId,
-                password.text,
-                username.text.trim(),
-                namaUsers.text.trim(),
-                kantorModel!.kdBank,
-                kantorModel!.kdKantor,
-                tglKadaluarsa.text.trim(),
-                "0",
-                jsonEncode(listModel))
+        UsersAccessRepository.insertUsersId(token, NetworkURL.insertUsersId(), "insert", users!.bprId, users!.usersId, password.text,
+                username.text.trim(), namaUsers.text.trim(), kantorModel!.kdKantor, tglKadaluarsa.text.trim(), "0", jsonEncode(listModel))
             .then((value) {
           Navigator.pop(context);
           if (value['value'] == 1) {
@@ -196,8 +176,7 @@ class UsersAccessNotifier extends ChangeNotifier {
       cellValues = selectedData.map((cell) => cell.value).toList();
       // var kategoriNew = cellValues![2];
       // phoneSelect = cellValues![6];
-      usersAccessModel =
-          list.where((element) => element.userid == cellValues![2]).first;
+      usersAccessModel = list.where((element) => element.userid == cellValues![2]).first;
       print("${cellValues![2]}");
       checkFasilitas();
       notifyListeners();
@@ -233,14 +212,9 @@ class UsersAccessNotifier extends ChangeNotifier {
   }
 
   gantiTanggal() async {
-    var pickedendDate = (await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime.now(),
-        lastDate: DateTime(2090)));
+    var pickedendDate = (await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime(2090)));
 
-    tglKadaluarsa.text = DateFormat("yyyy-MM-dd")
-        .format(DateTime.parse(pickedendDate.toString()));
+    tglKadaluarsa.text = DateFormat("yyyy-MM-dd").format(DateTime.parse(pickedendDate.toString()));
     notifyListeners();
   }
 
@@ -256,29 +230,38 @@ class UsersAccessNotifier extends ChangeNotifier {
     kantorModel = null;
     listAddFasilitas.clear();
     key.currentState!.openEndDrawer();
+    editData = false;
     notifyListeners();
   }
 
   edit() {
     key.currentState!.openEndDrawer();
     editData = true;
-    for (var i = 0;
-        i < listModelUsers.where((element) => element.flag == "TRUE").length;
-        i++) {
+    listAddFasilitas.clear();
+
+    final selected = listModelUsers.where((e) => (e.flag ?? "").toUpperCase() == "TRUE");
+
+    for (final item in selected) {
       listAddFasilitas.add(FasilitasModel(
-        modul: listModelUsers[i].modul,
-        menu: listModelUsers[i].menu,
-        submenu: listModelUsers[i].submenu,
-        urut: listModelUsers[i].urut,
+        modul: item.modul,
+        menu: item.menu,
+        submenu: item.submenu,
+        subsubmenu: item.subsubmenu,
+        urut: item.urut,
       ));
     }
-    namaUsers.text = usersAccessModel!.namauser;
-    tglKadaluarsa.text = usersAccessModel!.tglexp;
-    username.text = usersAccessModel!.userid;
-    password.text = decryptString(usersAccessModel!.pass);
-    kantorModel = listKantor
-        .where((element) => element.kdKantor == usersAccessModel!.kdkantor)
-        .first;
+
+    namaUsers.text = usersAccessModel?.namauser ?? "";
+    tglKadaluarsa.text = usersAccessModel?.tglexp ?? "";
+    username.text = usersAccessModel?.userid ?? "";
+    password.text = decryptString(usersAccessModel?.pass ?? "");
+
+    final kantorMatch = listKantor.where(
+      (element) => (element.kdKantor ?? "").toString().trim() == (usersAccessModel?.kdkantor ?? "").toString().trim(),
+    );
+
+    kantorModel = kantorMatch.isNotEmpty ? kantorMatch.first : null;
+
     notifyListeners();
   }
 }
