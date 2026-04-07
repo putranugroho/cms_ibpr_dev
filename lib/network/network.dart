@@ -6,7 +6,7 @@ const xusername = "core@2023";
 const xpassword = "corevalue@20231234";
 const url = "https://ibprservices.medtrans.id";
 const url2 = "https://infoservices.medtrans.id";
-const url_go = "http://103.129.149.131:8090";
+const url_go = "https://api-dev-cms.medtrans.id";
 const upload = "https://infoservices.medtrans.id/upload";
 const photo = "https://infoservices.medtrans.id/photo";
 
@@ -20,7 +20,7 @@ double height(BuildContext context) {
 
 class NetworkURL {
   static String login() {
-    return "$url/webServices/login_cms_dev.php";
+    return "$url_go/webServices/login_cms_dev.php";
   }
 
   static String getUsersAccess() {
