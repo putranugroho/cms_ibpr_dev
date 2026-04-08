@@ -90,7 +90,7 @@ class CetakMPINNotifier extends ChangeNotifier {
           print("Cetak $mPinResult");
           print("Hasil $mpIn");
         }
-        // print(gender);
+
         kdKantor = value['data']['kd_kantor'];
         notifyListeners();
       } else {
