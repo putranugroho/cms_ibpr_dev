@@ -7,6 +7,7 @@ import 'package:cms_ibpr/repository/auth_repository.dart';
 
 import 'package:cms_ibpr/utils/dialog_loading.dart';
 import 'package:cms_ibpr/utils/mpin_convert.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:pdf/pdf.dart';
@@ -75,8 +76,20 @@ class CetakMPINNotifier extends ChangeNotifier {
         tglLahir.text = value['data']['tgl_lahir'];
         gender = value['data']['gender'];
         mPinResult = (value['data']['mpin_cetak'] ?? '').toString();
-        mpIn = mPinResult.length >= 6 ? mPinResult.substring(0, 6) : mPinResult;
-        // print(mpIn);
+
+        String base = mPinResult.length > 4
+            ? mPinResult.substring(0, mPinResult.length - 4)
+            : mPinResult;
+
+        int baseInt = int.tryParse(base) ?? 0;
+
+        int result = (baseInt - 888888) ~/ 2;
+
+        mpIn = result.toString();
+        if (kDebugMode) {
+          print("Cetak $mPinResult");
+          print("Hasil $mpIn");
+        }
         // print(gender);
         kdKantor = value['data']['kd_kantor'];
         notifyListeners();
@@ -88,7 +101,8 @@ class CetakMPINNotifier extends ChangeNotifier {
 
   Future<void> generateAndPrintPDF() async {
     if (mPinResult == "") {
-      informationDialog(context, "Error", "Tidak bisa melakukan cetak ulang MPIN");
+      informationDialog(
+          context, "Error", "Tidak bisa melakukan cetak ulang MPIN");
     } else {
       DialogCustom().showLoading(context);
       AuthRepository.updateMpinCetak(
@@ -114,7 +128,8 @@ class CetakMPINNotifier extends ChangeNotifier {
                   children: [
                     pw.Text(
                       "MPIN Nasabah",
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold, fontSize: 12),
                     ),
                     pw.SizedBox(height: 20),
                     _buildRow("Nama Nasabah", namaRek.text.trim()),
@@ -126,7 +141,8 @@ class CetakMPINNotifier extends ChangeNotifier {
                     _buildRow("Nomor Ponsel", noHp.text.trim()),
                     _buildDivider(),
                     pw.SizedBox(height: 10),
-                    _buildRow("MPIN", ConvertMpin().numberToWordsPerCharacter(mpIn)),
+                    _buildRow(
+                        "MPIN", ConvertMpin().numberToWordsPerCharacter(mpIn)),
                     _buildDivider(),
                     pw.SizedBox(height: 20),
                     pw.Text(
@@ -182,7 +198,9 @@ class CetakMPINNotifier extends ChangeNotifier {
   }
 
   generated() async {
-    if (noHp.text.trim().isEmpty || noRek.text.trim().isEmpty || kdKantor.trim().isEmpty) {
+    if (noHp.text.trim().isEmpty ||
+        noRek.text.trim().isEmpty ||
+        kdKantor.trim().isEmpty) {
       informationDialog(context, "Error", "Data nasabah belum lengkap");
       return;
     }

@@ -20,7 +20,7 @@ double height(BuildContext context) {
 
 class NetworkURL {
   static String login() {
-    return "$url_go/webServices/login_cms_dev.php";
+    return "$url/webServices/login_cms_dev.php";
   }
 
   static String getUsersAccess() {
