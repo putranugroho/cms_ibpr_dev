@@ -441,6 +441,45 @@ class AuthRepository {
     };
   }
 
+  static Future<dynamic> regenerateMpinGo(
+    String token,
+    String url,
+    String userlogin,
+    String kdKantor,
+    String bprId,
+    String noHp,
+    String noRek,
+  ) async {
+    Map<String, dynamic> json = {
+      "userlogin": userlogin,
+      "bpr_id": bprId,
+      "kd_kantor": kdKantor,
+      "term": "web",
+      "data": {
+        "no_hp": noHp,
+        "no_rek": noRek,
+      }
+    };
+
+    Dio dio = Dio();
+    dio.options.headers['x-username'] = xusername;
+    dio.options.headers['x-password'] = xpassword;
+
+    if (kDebugMode) {
+      print("ENDPOINT URL : $url");
+      print("REQUEST REGENERATE MPIN : $json");
+    }
+
+    final response = await dio.post(url, data: json);
+    final decoded = response.data is String ? jsonDecode(response.data) : response.data;
+
+    return {
+      "value": decoded['code'] == "000" ? 1 : 0,
+      "message": decoded['message'],
+      "data": decoded['data'],
+    };
+  }
+
   static Future<dynamic> resetMpin(
     String token,
     String url,
@@ -451,11 +490,10 @@ class AuthRepository {
     String noRek,
   ) async {
     Map<String, dynamic> json = {
-      "token": token,
+      "userlogin": username,
       "bpr_id": bprId,
       "kd_kantor": kdKantor,
-      "term": "",
-      "userlogin": username,
+      "term": "web",
       "data": {
         "no_hp": noHp,
         "no_rek": noRek,
@@ -465,21 +503,20 @@ class AuthRepository {
     Dio dio = Dio();
     dio.options.headers['x-username'] = xusername;
     dio.options.headers['x-password'] = xpassword;
+
     if (kDebugMode) {
       print("ENDPOINT URL : $url");
+      print("REQUEST RESET MPIN : $json");
     }
+
     final response = await dio.post(url, data: json);
-    if (kDebugMode) {
-      print("RESPONSE STATUS CODE : ${response.statusCode}");
-    }
-    if (response.statusCode == 200) {
-      if (kDebugMode) {
-        print("RESPONSE DATA LOGIN : ${response.data}");
-      }
-      return jsonDecode(response.data);
-    } else {
-      return jsonDecode(response.data);
-    }
+    final decoded = response.data is String ? jsonDecode(response.data) : response.data;
+
+    return {
+      "value": decoded['code'] == "000" ? 1 : 0,
+      "message": decoded['message'],
+      "data": decoded['data'],
+    };
   }
 
   static Future<dynamic> gantiPassword(

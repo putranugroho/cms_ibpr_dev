@@ -75,22 +75,20 @@ class ResetMPINNotifier extends ChangeNotifier {
   }
 
   generated() async {
+    if (noHp.text.trim().isEmpty || noRek.text.trim().isEmpty || kdKantor.trim().isEmpty) {
+      informationDialog(context, "Error", "Data nasabah belum lengkap");
+      return;
+    }
+
     DialogCustom().showLoading(context);
-    // var rndnumber = "";
-    // var rnd = Random();
-    // for (var i = 0; i < 6; i++) {
-    //   rndnumber = rndnumber + rnd.nextInt(9).toString();
-    // }
-    // print(rndnumber);
-    // var mpin = (((int.parse((rndnumber)) * 2) + 999999) - 111111).toString();
-    // print(mpin);
+
     AuthRepository.resetMpin(
       token,
-      NetworkURL.resetMpin(),
+      NetworkURL.resetMpinGo(),
       users!.usersId,
       kdKantor,
       users!.bprId,
-      noHp.text,
+      noHp.text.trim(),
       noRek.text.trim(),
     ).then((value) {
       Navigator.pop(context);
@@ -101,11 +99,15 @@ class ResetMPINNotifier extends ChangeNotifier {
         noHp.clear();
         tglLahir.clear();
         gender = null;
+        kdKantor = "";
         notifyListeners();
         informationDialog(context, "Information", value['message']);
       } else {
         informationDialog(context, "Error", value['message']);
       }
+    }).catchError((e) {
+      Navigator.pop(context);
+      informationDialog(context, "Error", e.toString());
     });
   }
 }

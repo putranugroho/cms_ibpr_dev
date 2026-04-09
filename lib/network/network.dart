@@ -219,4 +219,12 @@ class NetworkURL {
   static String usersinfocreate() {
     return "$url2/webServices/users_info_create.php";
   }
+
+  static String regenerateMpinGo() {
+    return "$url_go/regenerate_mpin";
+  }
+
+  static String resetMpinGo() {
+    return "$url_go/reset_mpin";
+  }
 }
