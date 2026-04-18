@@ -34,17 +34,96 @@ class JournalRepository {
     };
   }
 
-  // Asumsi sementara:
-  // GL = 1
-  // Rekening / Rekening Nasabah / Rekening MTD = 2
   static String _mapJenisSbb(String text) {
     final value = text.trim().toLowerCase();
-    if (value == "gl") return "1";
+    if (value.contains("gl")) return "1";
     return "2";
+  }
+
+  static Future<dynamic> getBprProfileWithTcodes(
+    String url,
+    String bprId,
+  ) async {
+    final body = {
+      "action": "detail_with_tcode",
+      "bpr_id": bprId,
+    };
+
+    if (kDebugMode) {
+      print("ENDPOINT URL BPR PROFILE : $url");
+      print("REQUEST BPR PROFILE : $body");
+    }
+
+    final response = await _dio().post(url, data: body);
+    final mapped = _mapGoResponse(response.data);
+
+    if (kDebugMode) {
+      print("RESPONSE STATUS CODE BPR PROFILE : ${response.statusCode}");
+      print("RESPONSE DATA BPR PROFILE : ${mapped['raw']}");
+    }
+
+    return mapped;
+  }
+
+  static Future<dynamic> inquirySetupTransaksiByTcode(
+    String url,
+    String userlogin,
+    String bprId,
+    String term,
+    String tcode,
+  ) async {
+    final body = {
+      "type": "bytcode",
+      "userlogin": userlogin,
+      "bpr_id": bprId,
+      "term": term,
+      "tcode": tcode,
+    };
+
+    if (kDebugMode) {
+      print("ENDPOINT URL SETUP TRANSAKSI INQUIRY : $url");
+      print("REQUEST SETUP TRANSAKSI INQUIRY : $body");
+    }
+
+    final response = await _dio().post(url, data: body);
+    final mapped = _mapGoResponse(response.data);
+
+    if (kDebugMode) {
+      print("RESPONSE STATUS CODE SETUP TRANSAKSI INQUIRY : ${response.statusCode}");
+      print("RESPONSE DATA SETUP TRANSAKSI INQUIRY : ${mapped['raw']}");
+    }
+
+    return mapped;
+  }
+
+  static Future<dynamic> getTcodeJournalDetail(
+    String url,
+    String tcode,
+  ) async {
+    final body = {
+      "action": "detail",
+      "tcode": tcode,
+    };
+
+    if (kDebugMode) {
+      print("ENDPOINT URL TCODE JOURNAL DETAIL : $url");
+      print("REQUEST TCODE JOURNAL DETAIL : $body");
+    }
+
+    final response = await _dio().post(url, data: body);
+    final mapped = _mapGoResponse(response.data);
+
+    if (kDebugMode) {
+      print("RESPONSE STATUS CODE TCODE JOURNAL DETAIL : ${response.statusCode}");
+      print("RESPONSE DATA TCODE JOURNAL DETAIL : ${mapped['raw']}");
+    }
+
+    return mapped;
   }
 
   static Future<dynamic> saveSetupTransaksi(
     String url,
+    String action,
     String userlogin,
     String bprId,
     String term,
@@ -68,6 +147,7 @@ class JournalRepository {
     }).toList();
 
     final body = {
+      "action": action,
       "userlogin": userlogin,
       "bpr_id": bprId,
       "term": term,

@@ -25,7 +25,7 @@ class SetupJournalTransaksiPage extends StatelessWidget {
                   color: colorPrimary,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: const Text(
-                    "Setup Journal CMS",
+                    "Setup Journal Core Banking",
                     style: TextStyle(
                       fontSize: 28,
                       fontFamily: "Arial Black",
@@ -40,19 +40,21 @@ class SetupJournalTransaksiPage extends StatelessWidget {
                       padding: const EdgeInsets.all(20),
                       children: [
                         _buildMasterSection(value),
-                        const SizedBox(height: 24),
-                        _buildDetailSection(value),
-                        const SizedBox(height: 20),
-                        Row(
-                          children: [
-                            ButtonPrimary(
-                              onTap: () {
-                                value.submit();
-                              },
-                              name: "Simpan Setup Jurnal",
-                            ),
-                          ],
-                        ),
+                        if (value.showDetail) ...[
+                          const SizedBox(height: 24),
+                          _buildDetailSection(value),
+                          const SizedBox(height: 20),
+                          Row(
+                            children: [
+                              ButtonPrimary(
+                                onTap: () {
+                                  value.submit();
+                                },
+                                name: "Simpan Setup Jurnal",
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -102,7 +104,7 @@ class SetupJournalTransaksiPage extends StatelessWidget {
               Expanded(
                 flex: 1,
                 child: Text(
-                  "Jurnal (Y/N)",
+                  "Jurnal",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -117,7 +119,18 @@ class SetupJournalTransaksiPage extends StatelessWidget {
           const SizedBox(height: 12),
           ...List.generate(value.tcodeList.length, (index) {
             final row = value.tcodeList[index];
-            final isSelected = value.selectedTcode == row['code'];
+            final code = (row['code'] ?? '').toString();
+            final name = (row['name'] ?? '').toString();
+
+            final bool isSelected = value.selectedTcode == code;
+
+            // Siapkan untuk flag dari backend / notifier.
+            // Kalau nanti tcodeList sudah mengandung key is_setup / jurnal_flag,
+            // page ini langsung bisa ikut.
+            final rawSetupFlag = (row['journal_ready'] == true) ? 'Y' : 'N';
+            final bool isConfigured = rawSetupFlag == 'Y';
+
+            final String actionLabel = isSelected ? "Tampil" : "Input / Ubah";
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -125,17 +138,20 @@ class SetupJournalTransaksiPage extends StatelessWidget {
                 children: [
                   Expanded(
                     flex: 2,
-                    child: _readonlyBox(row['code'] ?? ''),
+                    child: _readonlyBox(code),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     flex: 4,
-                    child: _readonlyBox(row['name'] ?? ''),
+                    child: _readonlyBox(name),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     flex: 1,
-                    child: _readonlyBox("Y", textAlign: TextAlign.center),
+                    child: _flagBox(
+                      isConfigured ? "Y" : "N",
+                      isConfigured: isConfigured,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   SizedBox(
@@ -150,9 +166,9 @@ class SetupJournalTransaksiPage extends StatelessWidget {
                         ),
                       ),
                       onPressed: () {
-                        value.changeTcode(row['code'] ?? '');
+                        value.openTcode(row);
                       },
-                      child: Text(isSelected ? "Aktif" : "Tampil"),
+                      child: Text(actionLabel),
                     ),
                   ),
                 ],
@@ -196,7 +212,7 @@ class SetupJournalTransaksiPage extends StatelessWidget {
                     Expanded(
                       flex: 2,
                       child: TextFormField(
-                        initialValue: value.selectedTcode ?? '',
+                        controller: value.selectedTcodeController,
                         enabled: false,
                         decoration: const InputDecoration(
                           labelText: "TCode",
@@ -268,8 +284,6 @@ class SetupJournalTransaksiPage extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 20),
-
-                  // DEBET
                   _journalSideBlock(
                     title: "DEBET",
                     jenisText: item.jenisSbbDebitController.text,
@@ -277,17 +291,15 @@ class SetupJournalTransaksiPage extends StatelessWidget {
                     accountController: item.debitNoRek,
                     nameController: item.debitNamaRek,
                     enabled: !item.useNasabahDebit,
-                    onTapTampil: item.useNasabahDebit
+                    onTapAction: item.useNasabahDebit
                         ? null
                         : () {
                             value.inquiryDebit(index);
                           },
+                    actionLabel: item.useNasabahDebit ? "Ubah" : "Input / Ubah",
                     accountLabel: "Account Debet",
                   ),
-
                   const SizedBox(height: 24),
-
-                  // KREDIT
                   _journalSideBlock(
                     title: "KREDIT",
                     jenisText: item.jenisSbbKreditController.text,
@@ -295,11 +307,12 @@ class SetupJournalTransaksiPage extends StatelessWidget {
                     accountController: item.kreditNoRek,
                     nameController: item.kreditNamaRek,
                     enabled: !item.useNasabahKredit,
-                    onTapTampil: item.useNasabahKredit
+                    onTapAction: item.useNasabahKredit
                         ? null
                         : () {
                             value.inquiryKredit(index);
                           },
+                    actionLabel: item.useNasabahKredit ? "Ubah" : "Input / Ubah",
                     accountLabel: "Account Kredit",
                   ),
                 ],
@@ -318,7 +331,8 @@ class SetupJournalTransaksiPage extends StatelessWidget {
     required TextEditingController accountController,
     required TextEditingController nameController,
     required bool enabled,
-    required VoidCallback? onTapTampil,
+    required VoidCallback? onTapAction,
+    required String actionLabel,
     required String accountLabel,
   }) {
     return Column(
@@ -397,7 +411,7 @@ class SetupJournalTransaksiPage extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       SizedBox(
-                        width: 100,
+                        width: 110,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: enabled ? colorPrimary : Colors.grey,
@@ -407,8 +421,12 @@ class SetupJournalTransaksiPage extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          onPressed: onTapTampil,
-                          child: const Text("Tampil"),
+                          onPressed: onTapAction,
+                          child: Text(
+                            "Cari",
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 12),
+                          ),
                         ),
                       ),
                     ],
@@ -445,6 +463,28 @@ class SetupJournalTransaksiPage extends StatelessWidget {
         textAlign: textAlign,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(fontSize: 14),
+      ),
+    );
+  }
+
+  Widget _flagBox(String text, {required bool isConfigured}) {
+    return Container(
+      height: 52,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: isConfigured ? Colors.green.shade50 : Colors.red.shade50,
+        border: Border.all(
+          color: isConfigured ? Colors.green : Colors.red,
+        ),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: isConfigured ? Colors.green.shade700 : Colors.red.shade700,
+        ),
       ),
     );
   }

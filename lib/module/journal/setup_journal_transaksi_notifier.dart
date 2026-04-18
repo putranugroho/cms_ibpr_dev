@@ -13,6 +13,9 @@ class JournalItemModel {
   bool useNasabahDebit;
   bool useNasabahKredit;
 
+  int debitSourceType;
+  int kreditSourceType;
+
   TextEditingController debitNoRek;
   TextEditingController debitNamaRek;
   TextEditingController kreditNoRek;
@@ -27,6 +30,8 @@ class JournalItemModel {
     required this.jnsGl,
     required this.useNasabahDebit,
     required this.useNasabahKredit,
+    required this.debitSourceType,
+    required this.kreditSourceType,
     required this.debitNoRek,
     required this.debitNamaRek,
     required this.kreditNoRek,
@@ -55,76 +60,138 @@ class SetupJournalTransaksiNotifier extends ChangeNotifier {
   final BuildContext context;
 
   SetupJournalTransaksiNotifier({required this.context}) {
-    getProfile();
-    initTcode();
-    loadDummyTemplate();
+    _init();
   }
 
   UsersModel? users;
 
-  Future<void> getProfile() async {
-    Pref().getUsers().then((value) {
-      users = value;
-      notifyListeners();
-    });
-  }
-
   final keyForm = GlobalKey<FormState>();
 
-  final List<Map<String, String>> tcodeList = [
-    {"code": "2100", "name": "TRANSFER OUT"},
-    {"code": "2200", "name": "TRANSFER IN"},
-    {"code": "2300", "name": "PINDAH BUKU"},
-    {"code": "4000", "name": "TARIK TUNAI"},
-    {"code": "5000", "name": "PPOB"},
-  ];
-
+  List<Map<String, dynamic>> tcodeList = [];
   String? selectedTcode;
+  bool showDetail = false;
+  bool isExistingSetup = false;
+
+  TextEditingController selectedTcodeController = TextEditingController();
   TextEditingController ketTcode = TextEditingController();
 
   List<JournalItemModel> journals = [];
 
-  void initTcode() {
-    if (tcodeList.isNotEmpty) {
-      selectedTcode = tcodeList.first['code'];
-      ketTcode.text = tcodeList.first['name'] ?? '';
-    }
+  Future<void> _init() async {
+    await getProfile();
+    await loadMasterTcodes();
   }
 
-  void changeTcode(String code) {
-    selectedTcode = code;
-    final item = tcodeList.firstWhere(
-      (e) => e['code'] == code,
-      orElse: () => {"code": "", "name": ""},
-    );
-    ketTcode.text = item['name'] ?? '';
-    loadDummyTemplate();
+  Future<void> getProfile() async {
+    users = await Pref().getUsers();
     notifyListeners();
   }
 
-  JournalItemModel _makeJournal({
-    required String jnsGl,
-    required String keterangan,
-    required bool useNasabahDebit,
-    required bool useNasabahKredit,
-    required String jenisSbbDebitText,
-    required String jenisSbbKreditText,
-    required String debitSourceText,
-    required String kreditSourceText,
+  Future<void> loadMasterTcodes() async {
+    if (users == null) return;
+
+    DialogCustom().showLoading(context);
+
+    JournalRepository.getBprProfileWithTcodes(
+      NetworkURL.bprProfile(),
+      users!.bprId,
+    ).then((value) {
+      Navigator.pop(context);
+
+      if (value['value'] == 1) {
+        final raw = value['data'] ?? {};
+        final tcodes = (raw['tcodes'] as List? ?? []);
+
+        tcodeList = tcodes.where((e) => (Map<String, dynamic>.from(e as Map))['is_linked'] == true).map((e) {
+          final row = Map<String, dynamic>.from(e as Map);
+          return {
+            "code": (row['tcode'] ?? '').toString(),
+            "name": (row['keterangan'] ?? '').toString().toUpperCase(),
+            "journal_ready": row['journal_ready'] == true,
+            "is_linked": row['is_linked'] == true,
+          };
+        }).toList();
+
+        showDetail = false;
+        selectedTcode = null;
+        selectedTcodeController.clear();
+        ketTcode.clear();
+        _clearJournals();
+        notifyListeners();
+      } else {
+        informationDialog(context, "Error", value['message']);
+      }
+    }).catchError((e) {
+      Navigator.pop(context);
+      informationDialog(context, "Error", e.toString());
+    });
+  }
+
+  Future<void> openTcode(Map<String, dynamic> row) async {
+    final String tcode = (row['code'] ?? row['tcode'] ?? '').toString();
+    final String name = (row['name'] ?? row['keterangan'] ?? '').toString();
+    final bool ready = row['journal_ready'] == true;
+
+    selectedTcode = tcode;
+    selectedTcodeController.text = tcode;
+    ketTcode.text = name;
+    isExistingSetup = ready;
+    showDetail = true;
+    _clearJournals();
+    notifyListeners();
+
+    await loadJournalTemplate(tcode);
+
+    if (ready) {
+      await overlayExistingSetup(tcode);
+    }
+
+    notifyListeners();
+  }
+
+  JournalItemModel _createJournalFromTemplate({
+    required int journalNo,
+    required String keteranganJurnal,
+    required int debitSourceType,
+    required String debitKeterangan,
+    required int kreditSourceType,
+    required String kreditKeterangan,
   }) {
+    final bool useNasabahDebit = debitSourceType == 1;
+    final bool useNasabahKredit = kreditSourceType == 1;
+
+    String mapJenis(int sourceType) {
+      if (sourceType == 1) return "Rekening Nasabah";
+      if (sourceType == 2) return "GL";
+      if (sourceType == 3) return "Rekening";
+      return "Rekening";
+    }
+
     return JournalItemModel(
-      jnsGl: jnsGl,
+      jnsGl: journalNo.toString(),
       useNasabahDebit: useNasabahDebit,
       useNasabahKredit: useNasabahKredit,
+      debitSourceType: debitSourceType,
+      kreditSourceType: kreditSourceType,
       debitNoRek: TextEditingController(),
       debitNamaRek: TextEditingController(),
       kreditNoRek: TextEditingController(),
       kreditNamaRek: TextEditingController(),
-      keteranganController: TextEditingController(text: keterangan),
-      jenisSbbDebitController: TextEditingController(text: jenisSbbDebitText),
-      jenisSbbKreditController: TextEditingController(text: jenisSbbKreditText),
-      debitSourceController: TextEditingController(text: debitSourceText),
-      kreditSourceController: TextEditingController(text: kreditSourceText),
+      keteranganController: TextEditingController(
+        text: keteranganJurnal,
+      ),
+      jenisSbbDebitController: TextEditingController(
+        text: mapJenis(debitSourceType),
+      ),
+      jenisSbbKreditController: TextEditingController(
+        text: mapJenis(kreditSourceType),
+      ),
+      debitSourceController: TextEditingController(
+        text: debitKeterangan,
+      ),
+      kreditSourceController: TextEditingController(
+        text: kreditKeterangan,
+      ),
     );
   }
 
@@ -135,121 +202,89 @@ class SetupJournalTransaksiNotifier extends ChangeNotifier {
     journals = [];
   }
 
-  void loadDummyTemplate() {
-    _clearJournals();
+  Future<void> loadJournalTemplate(String tcode) async {
+    DialogCustom().showLoading(context);
 
-    switch (selectedTcode) {
-      case "5000":
-        journals = [
-          _makeJournal(
-            jnsGl: "0",
-            keterangan: "Pokok",
-            useNasabahDebit: true,
-            useNasabahKredit: false,
-            jenisSbbDebitText: "Rekening Nasabah",
-            jenisSbbKreditText: "GL",
-            debitSourceText: "Menggunakan nomor rekening nasabah",
-            kreditSourceText: "Menggunakan nomor rekening MTD",
-          ),
-          _makeJournal(
-            jnsGl: "1",
-            keterangan: "Fee MTD",
-            useNasabahDebit: false,
-            useNasabahKredit: false,
-            jenisSbbDebitText: "Rekening MTD",
-            jenisSbbKreditText: "Rekening MTD",
-            debitSourceText: "Menggunakan nomor rekening MTD",
-            kreditSourceText: "Menggunakan nomor rekening FEE MTD",
-          ),
-          _makeJournal(
-            jnsGl: "2",
-            keterangan: "Fee BPR",
-            useNasabahDebit: false,
-            useNasabahKredit: false,
-            jenisSbbDebitText: "Rekening MTD",
-            jenisSbbKreditText: "Rekening MTD",
-            debitSourceText: "Menggunakan nomor rekening MTD",
-            kreditSourceText: "Menggunakan nomor rekening FEE BPR",
-          ),
-        ];
-        break;
+    JournalRepository.getTcodeJournalDetail(
+      NetworkURL.tcodeJournal(),
+      tcode,
+    ).then((value) {
+      Navigator.pop(context);
 
-      case "2100":
-        journals = [
-          _makeJournal(
-            jnsGl: "0",
-            keterangan: "Pokok",
-            useNasabahDebit: false,
-            useNasabahKredit: true,
-            jenisSbbDebitText: "GL",
-            jenisSbbKreditText: "Rekening",
-            debitSourceText: "Menggunakan nomor rekening penampung transfer out",
-            kreditSourceText: "Menggunakan nomor rekening nasabah",
-          ),
-        ];
-        break;
+      if (value['value'] == 1) {
+        final data = value['data'] ?? {};
+        final rows = (data['journals'] as List? ?? []);
 
-      case "2200":
-        journals = [
-          _makeJournal(
-            jnsGl: "0",
-            keterangan: "Pokok",
-            useNasabahDebit: true,
-            useNasabahKredit: false,
-            jenisSbbDebitText: "Rekening",
-            jenisSbbKreditText: "GL",
-            debitSourceText: "Menggunakan nomor rekening nasabah",
-            kreditSourceText: "Menggunakan nomor rekening penampung transfer in",
-          ),
-        ];
-        break;
+        _clearJournals();
 
-      case "2300":
-        journals = [
-          _makeJournal(
-            jnsGl: "0",
-            keterangan: "Pokok",
-            useNasabahDebit: true,
-            useNasabahKredit: true,
-            jenisSbbDebitText: "Rekening",
-            jenisSbbKreditText: "Rekening",
-            debitSourceText: "Menggunakan nomor rekening nasabah",
-            kreditSourceText: "Menggunakan nomor rekening nasabah",
-          ),
-        ];
-        break;
+        for (final raw in rows) {
+          final row = Map<String, dynamic>.from(raw as Map);
 
-      case "4000":
-        journals = [
-          _makeJournal(
-            jnsGl: "0",
-            keterangan: "Pokok",
-            useNasabahDebit: false,
-            useNasabahKredit: true,
-            jenisSbbDebitText: "GL",
-            jenisSbbKreditText: "Rekening",
-            debitSourceText: "Menggunakan nomor rekening kas/teller",
-            kreditSourceText: "Menggunakan nomor rekening nasabah",
-          ),
-        ];
-        break;
+          journals.add(
+            _createJournalFromTemplate(
+              journalNo: row['journal_no'] ?? 0,
+              keteranganJurnal: (row['keterangan_jurnal'] ?? '').toString().toUpperCase(),
+              debitSourceType: row['debit_source_type'] ?? 0,
+              debitKeterangan: (row['debit_keterangan'] ?? '').toString(),
+              kreditSourceType: row['kredit_source_type'] ?? 0,
+              kreditKeterangan: (row['kredit_keterangan'] ?? '').toString(),
+            ),
+          );
+        }
 
-      default:
-        journals = [
-          _makeJournal(
-            jnsGl: "0",
-            keterangan: "Pokok",
-            useNasabahDebit: false,
-            useNasabahKredit: false,
-            jenisSbbDebitText: "GL",
-            jenisSbbKreditText: "GL",
-            debitSourceText: "Menggunakan nomor rekening debit",
-            kreditSourceText: "Menggunakan nomor rekening kredit",
-          ),
-        ];
-    }
+        notifyListeners();
+      } else {
+        informationDialog(context, "Error", value['message']);
+      }
+    }).catchError((e) {
+      Navigator.pop(context);
+      informationDialog(context, "Error", e.toString());
+    });
+  }
 
-    notifyListeners();
+  Future<void> overlayExistingSetup(String tcode) async {
+    if (users == null) return;
+
+    DialogCustom().showLoading(context);
+
+    JournalRepository.inquirySetupTransaksiByTcode(
+      NetworkURL.setupTransaksiInquiry(),
+      users!.usersId,
+      users!.bprId,
+      "web",
+      tcode,
+    ).then((value) {
+      Navigator.pop(context);
+
+      if (value['value'] == 1) {
+        final rows = (value['data'] as List? ?? []);
+
+        for (final raw in rows) {
+          final row = Map<String, dynamic>.from(raw as Map);
+          final jnsGl = (row['JnsGL'] ?? '').toString();
+
+          final targetIndex = journals.indexWhere((e) => e.jnsGl == jnsGl);
+          if (targetIndex == -1) continue;
+
+          final item = journals[targetIndex];
+
+          item.debitNoRek.text = (row['NosbbDB'] ?? '').toString();
+          item.debitNamaRek.text = (row['NmsbbDB'] ?? '').toString();
+          item.kreditNoRek.text = (row['NosbbCR'] ?? '').toString();
+          item.kreditNamaRek.text = (row['NmsbbCR'] ?? '').toString();
+
+          item.useNasabahDebit = item.debitNoRek.text.trim().isEmpty;
+          item.useNasabahKredit = item.kreditNoRek.text.trim().isEmpty;
+        }
+
+        notifyListeners();
+      } else {
+        informationDialog(context, "Error", value['message']);
+      }
+    }).catchError((e) {
+      Navigator.pop(context);
+      informationDialog(context, "Error", e.toString());
+    });
   }
 
   String generateRRN() {
@@ -260,6 +295,15 @@ class SetupJournalTransaksiNotifier extends ChangeNotifier {
     final now = DateTime.now();
     String two(int n) => n.toString().padLeft(2, '0');
     return "${two(now.year % 100)}${two(now.month)}${two(now.day)}${two(now.hour)}${two(now.minute)}${two(now.second)}";
+  }
+
+  String _mapGlJnsFromSourceType(int sourceType) {
+    if (sourceType == 2) return "1";
+    return "2";
+  }
+
+  String _currentTrxCode() {
+    return (selectedTcode ?? "").trim();
   }
 
   Future<void> inquiryDebit(int index) async {
@@ -273,6 +317,12 @@ class SetupJournalTransaksiNotifier extends ChangeNotifier {
       return;
     }
 
+    final trxCode = _currentTrxCode();
+    if (trxCode.isEmpty) {
+      informationDialog(context, "Error", "TCode belum dipilih");
+      return;
+    }
+
     DialogCustom().showLoading(context);
 
     NasabahRepository.inqueryRekCMS(
@@ -280,13 +330,13 @@ class SetupJournalTransaksiNotifier extends ChangeNotifier {
       NetworkURL.inqueryRekCMS(),
       users!.usersId,
       users!.bprId,
-      "1000",
-      "I",
+      trxCode,
+      "TRX",
       generateDateYYMMDDHHMMSS(),
       generateDateYYMMDDHHMMSS(),
       generateRRN(),
       item.debitNoRek.text.trim(),
-      "D",
+      _mapGlJnsFromSourceType(item.debitSourceType),
     ).then((value) {
       Navigator.pop(context);
       if (value['value'] == 1) {
@@ -315,6 +365,12 @@ class SetupJournalTransaksiNotifier extends ChangeNotifier {
       return;
     }
 
+    final trxCode = _currentTrxCode();
+    if (trxCode.isEmpty) {
+      informationDialog(context, "Error", "TCode belum dipilih");
+      return;
+    }
+
     DialogCustom().showLoading(context);
 
     NasabahRepository.inqueryRekCMS(
@@ -322,13 +378,13 @@ class SetupJournalTransaksiNotifier extends ChangeNotifier {
       NetworkURL.inqueryRekCMS(),
       users!.usersId,
       users!.bprId,
-      "1000",
-      "I",
+      trxCode,
+      "TRX",
       generateDateYYMMDDHHMMSS(),
       generateDateYYMMDDHHMMSS(),
       generateRRN(),
       item.kreditNoRek.text.trim(),
-      "K",
+      _mapGlJnsFromSourceType(item.kreditSourceType),
     ).then((value) {
       Navigator.pop(context);
       if (value['value'] == 1) {
@@ -348,10 +404,6 @@ class SetupJournalTransaksiNotifier extends ChangeNotifier {
 
   Future<void> submit() async {
     if (users == null) return;
-
-    if (!keyForm.currentState!.validate()) {
-      return;
-    }
 
     if (selectedTcode == null || selectedTcode!.isEmpty) {
       informationDialog(context, "Error", "TCode wajib dipilih");
@@ -384,10 +436,13 @@ class SetupJournalTransaksiNotifier extends ChangeNotifier {
       }
     }
 
+    final action = isExistingSetup ? "update" : "insert";
+
     DialogCustom().showLoading(context);
 
     JournalRepository.saveSetupTransaksi(
       NetworkURL.setupTransaksi(),
+      action,
       users!.usersId,
       users!.bprId,
       "web",
@@ -399,6 +454,15 @@ class SetupJournalTransaksiNotifier extends ChangeNotifier {
       Navigator.pop(context);
 
       if (value['value'] == 1) {
+        final idx = tcodeList.indexWhere(
+          (e) => (e['code'] ?? '').toString() == selectedTcode,
+        );
+        if (idx != -1) {
+          tcodeList[idx]['journal_ready'] = true;
+        }
+        isExistingSetup = true;
+        notifyListeners();
+
         informationDialog(context, "Information", value['message']);
       } else {
         informationDialog(context, "Error", value['message']);
@@ -411,6 +475,7 @@ class SetupJournalTransaksiNotifier extends ChangeNotifier {
 
   @override
   void dispose() {
+    selectedTcodeController.dispose();
     ketTcode.dispose();
     _clearJournals();
     super.dispose();

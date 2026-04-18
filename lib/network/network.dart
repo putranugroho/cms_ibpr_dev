@@ -239,4 +239,20 @@ class NetworkURL {
   static String setupTransaksi() {
     return "$url_go/setup_transaksi";
   }
+
+  static String setupTransaksiInquiry() {
+    return "$url_go/setup_transaksi_inquiry";
+  }
+
+  static String bprProfile() {
+    return "$url_go/bpr_profile";
+  }
+
+  static String tcodeJournal() {
+    return "$url_go/tcode_journal";
+  }
+
+  static String tcodeJournalBulk() {
+    return "$url_go/tcode_journal_bulk";
+  }
 }
