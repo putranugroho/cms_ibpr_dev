@@ -152,6 +152,79 @@ class MenuPage extends StatelessWidget {
                                           ),
                                         ),
                                       ),
+                                      const SizedBox(height: 12),
+                                      InkWell(
+                                        onTap: (value.isSigninSignoffLoading || value.isStatusCoreLoading || !value.isCoreStatusAvailable)
+                                            ? null
+                                            : () => value.confirmSigninSignoff(),
+                                        child: Opacity(
+                                          opacity: (value.isStatusCoreLoading || !value.isCoreStatusAvailable) ? 0.75 : 1,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                            decoration: BoxDecoration(
+                                              color: !value.isCoreStatusAvailable
+                                                  ? Colors.grey.shade800
+                                                  : value.isCoreSignin
+                                                      ? Colors.green.shade700
+                                                      : Colors.red.shade700,
+                                              borderRadius: BorderRadius.circular(8),
+                                              border: Border.all(
+                                                color: !value.isCoreStatusAvailable
+                                                    ? Colors.grey.shade500
+                                                    : value.isCoreSignin
+                                                        ? Colors.greenAccent
+                                                        : Colors.redAccent,
+                                                width: 1.4,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  !value.isCoreStatusAvailable
+                                                      ? Icons.block
+                                                      : value.isCoreSignin
+                                                          ? Icons.lock_open
+                                                          : Icons.lock,
+                                                  color: Colors.white,
+                                                  size: 18,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    value.isStatusCoreLoading
+                                                        ? "CHECKING CORE..."
+                                                        : !value.isCoreStatusAvailable
+                                                            ? "CORE UNKNOWN"
+                                                            : value.isCoreSignin
+                                                                ? "CORE SIGN IN"
+                                                                : "CORE SIGN OFF",
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 11,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                                if (value.isSigninSignoffLoading || value.isStatusCoreLoading)
+                                                  const SizedBox(
+                                                    width: 14,
+                                                    height: 14,
+                                                    child: CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color: Colors.white,
+                                                    ),
+                                                  )
+                                                else
+                                                  Icon(
+                                                    !value.isCoreStatusAvailable ? Icons.error_outline : Icons.sync_alt,
+                                                    color: Colors.white,
+                                                    size: 16,
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
                                           vertical: 2,

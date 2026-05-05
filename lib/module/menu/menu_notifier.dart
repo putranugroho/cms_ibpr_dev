@@ -15,6 +15,11 @@ import '../../utils/button_custom.dart';
 
 class MenuNotifier extends ChangeNotifier {
   final BuildContext context;
+  bool isCoreSignin = false;
+  bool isCoreStatusAvailable = false;
+  bool isSigninSignoffLoading = false;
+  bool isStatusCoreLoading = false;
+  String coreStatusMessage = "Status core belum tersedia";
 
   MenuNotifier({required this.context}) {
     getProfile();
@@ -47,17 +52,288 @@ class MenuNotifier extends ChangeNotifier {
       }
       print(listFasilitas.length);
     });
-    Pref().getUsers().then((value) {
+    Pref().getUsers().then((value) async {
       users = value;
+
+      if (users != null) {
+        await getStatusCore();
+      }
+
       isloading = false;
       notifyListeners();
     });
     notifyListeners();
   }
 
+  Future getStatusCore() async {
+    if (users == null) return;
+
+    isStatusCoreLoading = true;
+    isCoreStatusAvailable = false;
+    coreStatusMessage = "Mengambil status core...";
+    notifyListeners();
+
+    try {
+      final result = await AuthRepository.statusCore(
+        NetworkURL.statusCore(),
+        users!.bprId,
+      );
+
+      final data = result["data"];
+
+      if (result["value"] == 1 && data is Map) {
+        final status = (data["status"] ?? "").toString();
+
+        if (status == "1") {
+          isCoreSignin = true;
+          isCoreStatusAvailable = true;
+          coreStatusMessage = "Transaksi sedang AKTIF";
+        } else if (status == "0") {
+          isCoreSignin = false;
+          isCoreStatusAvailable = true;
+          coreStatusMessage = "Transaksi sedang NONAKTIF";
+        } else {
+          isCoreSignin = false;
+          isCoreStatusAvailable = false;
+          coreStatusMessage = "Status core tidak valid";
+        }
+      } else {
+        isCoreSignin = false;
+        isCoreStatusAvailable = false;
+        coreStatusMessage = result["message"]?.toString() ?? "Gagal mengambil status core";
+      }
+    } catch (e) {
+      isCoreSignin = false;
+      isCoreStatusAvailable = false;
+      coreStatusMessage = "Gagal mengambil status core";
+      debugPrint("GET STATUS CORE ERROR: $e");
+    }
+
+    isStatusCoreLoading = false;
+    notifyListeners();
+  }
+
   int page = 0;
   gantipage(int value) {
     page = value;
+    notifyListeners();
+  }
+
+  confirmSigninSignoff() async {
+    if (!isCoreStatusAvailable || isStatusCoreLoading) {
+      informationDialog(
+        context,
+        "Informasi",
+        "Status core belum tersedia. Silakan refresh atau cek koneksi gateway.",
+      );
+      return;
+    }
+
+    final nextStatus = isCoreSignin ? "0" : "1";
+    final actionText = isCoreSignin ? "SIGN OFF" : "SIGN IN";
+    final isSignOff = isCoreSignin;
+
+    final message = isSignOff
+        ? "Anda akan melakukan SIGN OFF CORE. Semua transaksi akan dinonaktifkan sementara. Lanjutkan?"
+        : "Anda akan melakukan SIGN IN CORE. Transaksi akan diaktifkan kembali. Lanjutkan?";
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            width: 500,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      isSignOff ? Icons.warning_amber_rounded : Icons.lock_open,
+                      color: isSignOff ? Colors.orange : Colors.green,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "Konfirmasi $actionText CORE",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  message,
+                  style: const TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("User Login : ${users?.usersId ?? "-"}"),
+                      Text("BPR ID     : ${users?.bprId ?? "-"}"),
+                      Text("Status Baru: $actionText"),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ButtonSecondary(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        name: "Batal",
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ButtonPrimary(
+                        onTap: () {
+                          Navigator.pop(context);
+                          confirmSigninSignoffFinal(nextStatus, actionText, isSignOff);
+                        },
+                        name: actionText,
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  confirmSigninSignoffFinal(
+    String nextStatus,
+    String actionText,
+    bool isSignOff,
+  ) async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            width: 500,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      isSignOff ? Icons.warning_amber_rounded : Icons.lock_open,
+                      color: isSignOff ? Colors.red : Colors.green,
+                      size: 30,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        "Pastikan $actionText CORE?",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  isSignOff
+                      ? "Apakah Anda benar-benar yakin ingin melakukan SIGN OFF?\n\nSemua transaksi akan dinonaktifkan sementara."
+                      : "Apakah Anda benar-benar yakin ingin melakukan SIGN IN?\n\nTransaksi akan diaktifkan kembali.",
+                  style: const TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ButtonSecondary(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        name: "Tidak",
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ButtonPrimary(
+                        onTap: () {
+                          Navigator.pop(context);
+                          signinSignoff(nextStatus);
+                        },
+                        name: "Ya",
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future signinSignoff(String status) async {
+    if (users == null) {
+      informationDialog(context, "Informasi", "Data user tidak ditemukan");
+      return;
+    }
+
+    isSigninSignoffLoading = true;
+    notifyListeners();
+
+    DialogCustom().showLoading(context);
+
+    try {
+      final result = await AuthRepository.signinSignoff(
+        NetworkURL.signinSignoff(),
+        users!.usersId,
+        users!.bprId,
+        "WEB",
+        status,
+      );
+
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      final code = result["code"]?.toString() ?? "";
+      final value = result["value"]?.toString() ?? "";
+      final message = result["message"]?.toString() ?? "Proses signin-signoff selesai";
+
+      if (code == "000" || value == "1") {
+        await getStatusCore();
+        informationDialog(context, "Informasi", message);
+      } else {
+        informationDialog(context, "Informasi", message);
+      }
+    } catch (e) {
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      informationDialog(context, "Informasi", e.toString());
+    }
+
+    isSigninSignoffLoading = false;
     notifyListeners();
   }
 

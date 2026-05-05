@@ -185,7 +185,7 @@ class NetworkURL {
   }
 
   static String tutupNasabahCms() {
-    return "$url/webServices/tutup_nasabah_cms.php";
+    return "$url_go/account";
   }
 
   static String resetMpin() {
@@ -254,5 +254,13 @@ class NetworkURL {
 
   static String tcodeJournalBulk() {
     return "$url_go/tcode_journal_bulk";
+  }
+
+  static String signinSignoff() {
+    return "$url_go/signin_signoff";
+  }
+
+  static String statusCore() {
+    return "$url_go/stscore";
   }
 }

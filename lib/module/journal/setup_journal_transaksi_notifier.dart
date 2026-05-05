@@ -273,8 +273,18 @@ class SetupJournalTransaksiNotifier extends ChangeNotifier {
           item.kreditNoRek.text = (row['NosbbCR'] ?? '').toString();
           item.kreditNamaRek.text = (row['NmsbbCR'] ?? '').toString();
 
-          item.useNasabahDebit = item.debitNoRek.text.trim().isEmpty;
-          item.useNasabahKredit = item.kreditNoRek.text.trim().isEmpty;
+          item.useNasabahDebit = item.debitSourceType == 1;
+          item.useNasabahKredit = item.kreditSourceType == 1;
+
+          if (item.useNasabahDebit) {
+            item.debitNoRek.clear();
+            item.debitNamaRek.clear();
+          }
+
+          if (item.useNasabahKredit) {
+            item.kreditNoRek.clear();
+            item.kreditNamaRek.clear();
+          }
         }
 
         notifyListeners();

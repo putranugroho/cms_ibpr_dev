@@ -296,6 +296,55 @@ class NasabahRepository {
     return _mapGoResponse(response.data);
   }
 
+  static Future<dynamic> tutupNasabahGo(
+    String token,
+    String url,
+    String username,
+    String bprId,
+    String kdKantor,
+    String noKtp,
+    String nama,
+    String noRek,
+    String namaRek,
+    String noHp,
+    String tglLahir,
+    String gender,
+    String acctType,
+  ) async {
+    Map<String, dynamic> json = {
+      "action": "close",
+      "no_ktp": noKtp,
+      "nama": nama,
+      "no_rek": noRek,
+      "nama_rek": namaRek,
+      "no_hp": noHp,
+      "tgl_lahir": tglLahir,
+      "gender": gender,
+      "acct_type": acctType,
+      "term": "web",
+      "kd_kantor": kdKantor,
+      "userlogin": username,
+      "fhoto_1": "",
+      "fhoto_2": "",
+      "fhoto_3": "",
+      "bpr_id": bprId,
+    };
+
+    if (kDebugMode) {
+      print("ENDPOINT URL TUTUP NASABAH : $url");
+      print("REQUEST TUTUP NASABAH : ${jsonEncode(json)}");
+    }
+
+    final response = await _dio().post(url, data: json);
+
+    if (kDebugMode) {
+      print("RESPONSE STATUS CODE TUTUP NASABAH : ${response.statusCode}");
+      print("RESPONSE DATA TUTUP NASABAH : ${response.data}");
+    }
+
+    return _mapGoResponse(response.data);
+  }
+
   static Future<dynamic> updateAkunCMS(
     String token,
     String url,

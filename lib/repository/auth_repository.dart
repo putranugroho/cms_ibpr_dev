@@ -625,4 +625,76 @@ class AuthRepository {
       return jsonDecode(response.data);
     }
   }
+
+  static Future<dynamic> signinSignoff(
+    String url,
+    String userlogin,
+    String bprId,
+    String term,
+    String status,
+  ) async {
+    final Map<String, dynamic> json = {
+      "userlogin": _normalizeUpper(userlogin),
+      "bpr_id": bprId,
+      "term": term,
+      "status": status,
+    };
+
+    final dio = _dio();
+
+    if (kDebugMode) {
+      print("ENDPOINT URL SIGNIN SIGNOFF : $url");
+      print("REQUEST SIGNIN SIGNOFF : $json");
+    }
+
+    final response = await dio.post(url, data: json);
+    final decoded = _safeDecode(response.data);
+
+    if (kDebugMode) {
+      print("RESPONSE STATUS CODE SIGNIN SIGNOFF : ${response.statusCode}");
+      print("RESPONSE DATA SIGNIN SIGNOFF : $decoded");
+    }
+
+    return {
+      "value": _mapValueFromGo(decoded),
+      "code": (decoded["code"] ?? "").toString(),
+      "status": (decoded["status"] ?? "").toString(),
+      "message": _mapMessageFromGo(decoded),
+      "data": decoded["data"],
+      "raw": decoded,
+    };
+  }
+
+  static Future<dynamic> statusCore(
+    String url,
+    String bprId,
+  ) async {
+    final Map<String, dynamic> json = {
+      "bpr_id": bprId,
+    };
+
+    final dio = _dio();
+
+    if (kDebugMode) {
+      print("ENDPOINT URL STATUS CORE : $url");
+      print("REQUEST STATUS CORE : $json");
+    }
+
+    final response = await dio.post(url, data: json);
+    final decoded = _safeDecode(response.data);
+
+    if (kDebugMode) {
+      print("RESPONSE STATUS CODE STATUS CORE : ${response.statusCode}");
+      print("RESPONSE DATA STATUS CORE : $decoded");
+    }
+
+    return {
+      "value": _mapValueFromGo(decoded),
+      "code": (decoded["code"] ?? "").toString(),
+      "status": (decoded["status"] ?? "").toString(),
+      "message": _mapMessageFromGo(decoded),
+      "data": decoded["data"],
+      "raw": decoded,
+    };
+  }
 }

@@ -73,18 +73,36 @@ class TutupNasabahNotifier extends ChangeNotifier {
   }
 
   generated() async {
+    if (users == null) return;
+
+    if (noHp.text.trim().isEmpty || noRek.text.trim().isEmpty) {
+      informationDialog(
+        context,
+        "Error",
+        "Silakan lakukan inquiry nasabah terlebih dahulu.",
+      );
+      return;
+    }
+
     DialogCustom().showLoading(context);
 
-    // print(mpin);
-    NasabahRepository.blokirAkunCMS(
+    NasabahRepository.tutupNasabahGo(
       token,
       NetworkURL.tutupNasabahCms(),
       users!.usersId,
       users!.bprId,
-      noHp.text,
-      noRek.text,
+      kdKantor.isNotEmpty ? kdKantor : users!.kodeKantor,
+      noKtp.text.trim(),
+      namaRek.text.trim(),
+      noRek.text.trim(),
+      namaRek.text.trim(),
+      noHp.text.trim(),
+      tglLahir.text.trim(),
+      gender ?? "",
+      "1",
     ).then((value) {
       Navigator.pop(context);
+
       if (value['value'] == 1) {
         namaRek.clear();
         noRek.clear();
@@ -92,11 +110,16 @@ class TutupNasabahNotifier extends ChangeNotifier {
         noHp.clear();
         tglLahir.clear();
         gender = null;
+        kdKantor = "";
         notifyListeners();
+
         informationDialog(context, "Information", value['message']);
       } else {
         informationDialog(context, "Error", value['message']);
       }
+    }).catchError((e) {
+      Navigator.pop(context);
+      informationDialog(context, "Error", e.toString());
     });
   }
 }
