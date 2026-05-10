@@ -30,6 +30,7 @@ class NasabahNotifier extends ChangeNotifier {
   UsersModel? users;
   int? selectCamera;
   var ketemuCamera = false;
+  bool _isSubmitting = false;
   CameraController? controller;
   CameraController? controller2;
 
@@ -38,86 +39,84 @@ class NasabahNotifier extends ChangeNotifier {
   String? rekeningError;
 
   getProfile() async {
-    cameras = await availableCameras();
-    notifyListeners();
     Pref().getUsers().then((value) {
       users = value;
       getAccountType();
       getNasabah();
       notifyListeners();
-      if (cameras.isNotEmpty) {
-        ketemuCamera = true;
-        notifyListeners();
-        if (selectCamera == null) {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return Dialog(
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  width: 500,
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: [
-                      const Text("Pilih Kamera Anda"),
-                      const SizedBox(height: 6),
-                      ListView.builder(
-                        itemCount: cameras.length,
-                        shrinkWrap: true,
-                        itemBuilder: (context, i) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  selectCamera = i;
-                                  controller = CameraController(
-                                    cameras[selectCamera!],
-                                    ResolutionPreset.max,
-                                  );
-                                  controller2 = CameraController(
-                                    cameras[selectCamera!],
-                                    ResolutionPreset.max,
-                                  );
-                                  notifyListeners();
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8,
-                                  ),
-                                  child: Text(cameras[i].name),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                            ],
-                          );
-                        },
-                      )
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        } else {
-          ketemuCamera = false;
-          notifyListeners();
-        }
-      } else {
-        ketemuCamera = false;
-        notifyListeners();
-      }
     });
+  }
+
+  Future<bool> prepareCamera() async {
+    try {
+      if (cameras.isEmpty) {
+        cameras = await availableCameras();
+      }
+
+      if (cameras.isEmpty) {
+        informationDialog(context, "Error", "Kamera tidak ditemukan");
+        return false;
+      }
+
+      selectCamera ??= 0;
+
+      controller ??= CameraController(
+        cameras[selectCamera!],
+        ResolutionPreset.max,
+        enableAudio: false,
+      );
+
+      controller2 ??= CameraController(
+        cameras[selectCamera!],
+        ResolutionPreset.max,
+        enableAudio: false,
+      );
+
+      return true;
+    } catch (e) {
+      informationDialog(context, "Error", "Gagal mengakses kamera: $e");
+      return false;
+    }
+  }
+
+  Future<void> disposeCamera() async {
+    try {
+      if (controller != null) {
+        if (controller!.value.isInitialized) {
+          await controller!.dispose();
+        }
+        controller = null;
+      }
+
+      if (controller2 != null) {
+        if (controller2!.value.isInitialized) {
+          await controller2!.dispose();
+        }
+        controller2 = null;
+      }
+
+      tombolcapture = false;
+      tombolcaptureselfie = false;
+    } catch (_) {
+      controller = null;
+      controller2 = null;
+      tombolcapture = false;
+      tombolcaptureselfie = false;
+    }
   }
 
   var isLoadingAccount = true;
   List<AcctTypeModel> listAccount = [];
   AcctTypeModel? acctTypeModel;
+  String selectedAcctType = "";
 
   pilihAcctType(AcctTypeModel value) {
     acctTypeModel = value;
+    selectedAcctType = value.kdAcc;
     acctTypeError = null;
+
+    debugPrint("SELECTED ACCT TYPE: $selectedAcctType");
+
     notifyListeners();
   }
 
@@ -175,7 +174,7 @@ class NasabahNotifier extends ChangeNotifier {
       genderError = "Pilih jenis kelamin";
     }
 
-    if (acctTypeModel == null) {
+    if (selectedAcctType.trim().isEmpty) {
       acctTypeError = "Pilih account type";
     }
 
@@ -197,12 +196,21 @@ class NasabahNotifier extends ChangeNotifier {
     ).then((value) {
       if (value['value'] == 1) {
         listAccount.clear();
-        for (Map<String, dynamic> i in value['data']) {
-          listAccount.add(AcctTypeModel.fromJson(i));
+
+        final rawData = value['data'];
+        if (rawData is List) {
+          for (final raw in rawData) {
+            listAccount.add(AcctTypeModel.fromJson(Map<String, dynamic>.from(raw)));
+          }
         }
-        for (Map<String, dynamic> i in value['kantor']) {
-          listKantor.add(KantorModel.fromJson(i));
+
+        final rawKantor = value['kantor'];
+        if (rawKantor is List) {
+          for (final raw in rawKantor) {
+            listKantor.add(KantorModel.fromJson(Map<String, dynamic>.from(raw)));
+          }
         }
+
         isLoadingAccount = false;
         notifyListeners();
       } else {
@@ -215,19 +223,30 @@ class NasabahNotifier extends ChangeNotifier {
   XFile? image;
   XFile? image2;
 
-  close() {
-    Navigator.pop(context);
-    controller!.dispose();
-    controller2!.dispose();
+  close() async {
+    closeSafeLoading();
+
+    if (controller != null) {
+      await controller!.dispose();
+      controller = null;
+    }
+
+    if (controller2 != null) {
+      await controller2!.dispose();
+      controller2 = null;
+    }
+
     notifyListeners();
   }
 
   GlobalKey<ScaffoldState> key = GlobalKey<ScaffoldState>();
 
-  tambah() {
+  tambah() async {
+    await disposeCamera();
     nasabahModel = null;
     kantorModel = null;
     acctTypeModel = null;
+    selectedAcctType = "";
     gender = null;
     genderError = null;
     acctTypeError = null;
@@ -242,8 +261,6 @@ class NasabahNotifier extends ChangeNotifier {
     editData = false;
     image = null;
     image2 = null;
-    controller = CameraController(cameras[selectCamera!], ResolutionPreset.max);
-    controller2 = CameraController(cameras[selectCamera!], ResolutionPreset.max);
     currentStep = 0;
     tombolcapture = false;
     tombolcaptureselfie = false;
@@ -252,38 +269,52 @@ class NasabahNotifier extends ChangeNotifier {
 
   bool tombolcapture = false;
 
-  openKTP() {
-    controller2!.initialize().then((_) {
-      notifyListeners();
-    }).catchError((Object e) {
-      if (e is CameraException) {
-        switch (e.code) {
-          case 'CameraAccessDenied':
-            break;
-          default:
-            break;
-        }
+  openKTP() async {
+    final ready = await prepareCamera();
+    if (!ready) return;
+
+    try {
+      if (controller2 == null || controller2!.value.isInitialized == false) {
+        controller2 = CameraController(
+          cameras[selectCamera!],
+          ResolutionPreset.max,
+          enableAudio: false,
+        );
+        await controller2!.initialize();
       }
-    });
-    tombolcapture = true;
+
+      tombolcapture = true;
+      notifyListeners();
+    } catch (e) {
+      tombolcapture = false;
+      notifyListeners();
+      informationDialog(context, "Error", "Gagal membuka kamera KTP: $e");
+    }
   }
 
   bool tombolcaptureselfie = false;
 
-  openKTPSelfi() {
-    controller!.initialize().then((_) {
-      notifyListeners();
-    }).catchError((Object e) {
-      if (e is CameraException) {
-        switch (e.code) {
-          case 'CameraAccessDenied':
-            break;
-          default:
-            break;
-        }
+  openKTPSelfi() async {
+    final ready = await prepareCamera();
+    if (!ready) return;
+
+    try {
+      if (controller == null || controller!.value.isInitialized == false) {
+        controller = CameraController(
+          cameras[selectCamera!],
+          ResolutionPreset.max,
+          enableAudio: false,
+        );
+        await controller!.initialize();
       }
-    });
-    tombolcaptureselfie = true;
+
+      tombolcaptureselfie = true;
+      notifyListeners();
+    } catch (e) {
+      tombolcaptureselfie = false;
+      notifyListeners();
+      informationDialog(context, "Error", "Gagal membuka kamera selfie: $e");
+    }
   }
 
   captureKTP() async {
@@ -310,111 +341,181 @@ class NasabahNotifier extends ChangeNotifier {
       return;
     }
 
-    DialogCustom().showLoading(context);
-    var invoice = DateTime.now().microsecondsSinceEpoch.toString();
-    NasabahRepository.inqueryRekCMS(
-      token,
-      NetworkURL.inqueryRekCMS(),
-      users!.usersId,
-      users!.bprId,
-      "0200",
-      "TRX",
-      DateFormat('yyMMddHHmmss').format(DateTime.now()),
-      DateFormat('yyMMddHHmmss').format(DateTime.now()),
-      invoice,
-      norek.text.trim(),
-      "2",
-    ).then((value) {
-      Navigator.pop(context);
+    showSafeLoading();
+
+    try {
+      final invoice = DateTime.now().microsecondsSinceEpoch.toString();
+
+      final value = await NasabahRepository.inqueryRekCMS(
+        token,
+        NetworkURL.inqueryRekCMS(),
+        users!.usersId,
+        users!.bprId,
+        "0200",
+        "TRX",
+        DateFormat('yyMMddHHmmss').format(DateTime.now()),
+        DateFormat('yyMMddHHmmss').format(DateTime.now()),
+        invoice,
+        norek.text.trim(),
+        "2",
+      );
+
+      closeSafeLoading();
+
       if (value['value'] == 1) {
-        namarek.text = value['data']['nama'];
+        final data = value['data'];
+
+        namarek.text = (data?['nama'] ?? data?['nama_rek'] ?? "").toString();
         rekeningError = null;
+
         notifyListeners();
       } else {
-        informationDialog(context, "Error", value['message']);
+        informationDialog(
+          context,
+          "Error",
+          value['message']?.toString() ?? "Inquiry rekening gagal",
+        );
       }
-    });
+    } catch (e) {
+      closeSafeLoading();
+      informationDialog(context, "Error", e.toString());
+    }
+  }
+
+  bool _isLoadingOpen = false;
+
+  void showSafeLoading() {
+    if (_isLoadingOpen) return;
+    _isLoadingOpen = true;
+    DialogCustom().showLoading(context);
+  }
+
+  void closeSafeLoading() {
+    if (!_isLoadingOpen) return;
+
+    final navigator = Navigator.of(context, rootNavigator: true);
+
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
+
+    _isLoadingOpen = false;
+  }
+
+  Future<void> closeFormOnly() async {
+    if (key.currentState?.isEndDrawerOpen ?? false) {
+      Navigator.of(context).pop();
+      await Future.delayed(const Duration(milliseconds: 250));
+    }
   }
 
   cek() async {
     if (keyForm.currentState!.validate()) {
+      _isSubmitting = true;
       if (editData) {
-        Navigator.pop(context);
-        DialogCustom().showLoading(context);
-        var path;
-        var imageSelfi;
-        var path2;
-        var imageKtp;
-        if (image != null) {
-          path = await image!.readAsBytes();
-          imageSelfi = "_${DateTime.now().millisecondsSinceEpoch.toString()}.jpg";
+        await closeFormOnly();
+        showSafeLoading();
+
+        final bool changeSelfie = image != null;
+        final bool changeKtp = image2 != null;
+
+        Future<void> submitUpdate({
+          required String ktpFile,
+          required String selfieFile,
+        }) async {
+          NasabahRepository.updateAkunCMS(
+            token,
+            NetworkURL.updateAkunCms(),
+            users!.usersId,
+            users!.bprId,
+            nasabahModel!.kdKantor.toString().isNotEmpty ? nasabahModel!.kdKantor.toString() : users!.kodeKantor,
+            selectedAcctType,
+            gender!,
+            tglLahir.text.trim(),
+            noHp.text.trim(),
+            namarek.text.trim(),
+            norek.text.trim(),
+            namaLengkap.text.trim(),
+            nik.text.trim(),
+            ktpFile,
+            selfieFile,
+            nasabahModel!.noHp,
+            nasabahModel!.noRek,
+          ).then((e) async {
+            closeSafeLoading();
+            _isSubmitting = false;
+            if (e['value'] == 1) {
+              await disposeCamera();
+              getNasabah();
+              resetForm();
+              informationDialog(context, "Informasi", e['message']);
+            } else {
+              informationDialog(context, "Informasi", e['message']);
+            }
+          }).catchError((err) {
+            _isSubmitting = false;
+            closeSafeLoading();
+            informationDialog(context, "Error", err.toString());
+          });
         }
-        if (image2 != null) {
-          path2 = await image2!.readAsBytes();
-          imageKtp = "${DateTime.now().millisecondsSinceEpoch.toString()}__.jpg";
+
+        if (!changeSelfie && !changeKtp) {
+          await submitUpdate(
+            ktpFile: nasabahModel!.fhoto1.toString(),
+            selfieFile: nasabahModel!.fhoto2.toString(),
+          );
+          return;
         }
+
+        if (changeSelfie != changeKtp) {
+          closeSafeLoading();
+          informationDialog(
+            context,
+            "Error",
+            "Jika ingin mengganti foto, Foto KTP dan Selfie KTP harus diganti bersamaan.",
+          );
+          return;
+        }
+
+        final pathSelfie = await image!.readAsBytes();
+        final pathKtp = await image2!.readAsBytes();
+
+        final imageSelfi = "_${DateTime.now().millisecondsSinceEpoch}.jpg";
+        final imageKtp = "${DateTime.now().millisecondsSinceEpoch}__.jpg";
 
         NasabahRepository.insertGallery(
           token,
           NetworkURL.insertGallery(),
-          path2,
+          pathKtp,
           imageKtp,
-          path,
+          pathSelfie,
           imageSelfi,
-        ).then((value) {
+        ).then((value) async {
           if (value['value'] == 1) {
-            NasabahRepository.updateAkunCMS(
-              token,
-              NetworkURL.updateAkunCms(),
-              users!.usersId,
-              kantorModel!.bpr_id,
-              kantorModel!.kdKantor,
-              acctTypeModel!.kdAcc,
-              gender!,
-              tglLahir.text.trim(),
-              noHp.text.trim(),
-              namarek.text.trim(),
-              norek.text.trim(),
-              namaLengkap.text.trim(),
-              nik.text.trim(),
-              image != null ? imageKtp : nasabahModel!.fhoto1,
-              image2 != null ? imageSelfi : nasabahModel!.fhoto2,
-              nasabahModel!.noHp,
-              nasabahModel!.noRek,
-            ).then((e) {
-              Navigator.pop(context);
-              if (e['value'] == 1) {
-                getNasabah();
-                nasabahModel = null;
-                kantorModel = null;
-                acctTypeModel = null;
-                gender = null;
-                tglLahir.clear();
-                noHp.clear();
-                namarek.clear();
-                norek.clear();
-                namaLengkap.clear();
-                nik.clear();
-                image = null;
-                image2 = null;
-                notifyListeners();
-                informationDialog(context, "Informasi", e['message']);
-              } else {
-                informationDialog(context, "Informasi", e['message']);
-              }
-            });
+            final data = value['data'];
+
+            await submitUpdate(
+              ktpFile: (data['ktp_path'] ?? imageKtp).toString(),
+              selfieFile: (data['selfie_path'] ?? imageSelfi).toString(),
+            );
           } else {
-            Navigator.pop(context);
+            closeSafeLoading();
             informationDialog(context, "Error", value['message']);
           }
+        }).catchError((err) {
+          closeSafeLoading();
+          informationDialog(context, "Error", err.toString());
         });
+
+        return;
       } else {
-        Navigator.pop(context);
-        DialogCustom().showLoading(context);
+        await closeFormOnly();
+        showSafeLoading();
 
         if (image == null || image2 == null) {
-          Navigator.pop(context);
+          closeSafeLoading();
           informationDialog(context, "Error", "Foto KTP dan Selfie wajib diisi");
+          _isSubmitting = false;
           return;
         }
 
@@ -444,7 +545,7 @@ class NasabahNotifier extends ChangeNotifier {
               users!.usersId,
               users!.bprId,
               users!.kodeKantor,
-              acctTypeModel!.kdAcc,
+              selectedAcctType,
               gender!,
               tglLahir.text.trim(),
               noHp.text.trim(),
@@ -454,26 +555,21 @@ class NasabahNotifier extends ChangeNotifier {
               nik.text.trim(),
               ktpPath,
               selfiePath,
-            ).then((e) {
-              Navigator.pop(context);
+            ).then((e) async {
+              closeSafeLoading();
+              _isSubmitting = false;
               if (e['value'] == 1) {
+                await disposeCamera();
                 getNasabah();
-                namaLengkap.clear();
-                namarek.clear();
-                norek.clear();
-                noHp.clear();
-                nik.clear();
-                tglLahir.clear();
-                image = null;
-                image2 = null;
-                notifyListeners();
+                resetForm();
                 informationDialog(context, "Informasi", e['message']);
               } else {
                 informationDialog(context, "Informasi", e['message']);
               }
             });
           } else {
-            Navigator.pop(context);
+            closeSafeLoading();
+            _isSubmitting = false;
             informationDialog(context, "Error", value['message']);
           }
         });
@@ -529,7 +625,7 @@ class NasabahNotifier extends ChangeNotifier {
 
     final nasabah = listAdd.first;
 
-    DialogCustom().showLoading(context);
+    showSafeLoading();
 
     NasabahRepository.generatedMpin(
       token,
@@ -540,7 +636,7 @@ class NasabahNotifier extends ChangeNotifier {
       nasabah.noHp,
       nasabah.noRek,
     ).then((value) {
-      Navigator.pop(context);
+      closeSafeLoading();
       if (value['value'] == 1) {
         getNasabah();
         listAdd.clear();
@@ -549,7 +645,7 @@ class NasabahNotifier extends ChangeNotifier {
         CustomDialog.messageResponse(context, value['message']);
       }
     }).catchError((err) {
-      Navigator.pop(context);
+      closeSafeLoading();
       CustomDialog.messageResponse(context, err.toString());
     });
   }
@@ -561,24 +657,35 @@ class NasabahNotifier extends ChangeNotifier {
   Future getNasabah() async {
     isLoading = true;
     list.clear();
-    NasabahRepository.getNasabah(
-      token,
-      NetworkURL.getListNasbah(),
-      users!.usersId,
-      users!.bprId,
-      users!.kodeKantor,
-    ).then((value) {
+    notifyListeners();
+
+    try {
+      final value = await NasabahRepository.getNasabah(
+        token,
+        NetworkURL.getListNasbah(),
+        users!.usersId,
+        users!.bprId,
+        users!.kodeKantor,
+      );
+
       if (value['value'] == 1) {
-        for (Map<String, dynamic> i in value['data']) {
-          list.add(NsaabahModel.fromJson(i));
+        final rawData = value['data'];
+
+        if (rawData is List) {
+          for (final raw in rawData) {
+            final item = Map<String, dynamic>.from(raw);
+            list.add(NsaabahModel.fromJson(item));
+          }
         }
-        isLoading = false;
-        notifyListeners();
-      } else {
-        isLoading = false;
-        notifyListeners();
       }
-    });
+
+      isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      isLoading = false;
+      notifyListeners();
+      informationDialog(context, "Error", e.toString());
+    }
   }
 
   List<dynamic>? cellValues;
@@ -597,12 +704,15 @@ class NasabahNotifier extends ChangeNotifier {
 
   var editData = false;
 
-  edit() {
+  edit() async {
+    await disposeCamera();
     editData = true;
     key.currentState!.openEndDrawer();
-    controller = CameraController(cameras[selectCamera!], ResolutionPreset.max);
-    controller2 = CameraController(cameras[selectCamera!], ResolutionPreset.max);
-    acctTypeModel = listAccount.where((element) => element.kdAcc == nasabahModel!.acctType).first;
+    final matchedAcctType = listAccount.where(
+      (element) => element.kdAcc == nasabahModel!.acctType,
+    );
+    acctTypeModel = matchedAcctType.isNotEmpty ? matchedAcctType.first : null;
+    selectedAcctType = acctTypeModel?.kdAcc ?? nasabahModel!.acctType.toString();
     namaLengkap.text = nasabahModel!.nama;
     namarek.text = nasabahModel!.namaRek;
     noHp.text = nasabahModel!.noHp;
@@ -620,7 +730,7 @@ class NasabahNotifier extends ChangeNotifier {
   }
 
   confirm() {
-    Navigator.pop(context);
+    closeSafeLoading();
     showDialog(
       context: context,
       builder: (context) {
@@ -654,7 +764,7 @@ class NasabahNotifier extends ChangeNotifier {
                     Expanded(
                       child: ButtonSecondary(
                         onTap: () {
-                          Navigator.pop(context);
+                          closeSafeLoading();
                         },
                         name: "No",
                       ),
@@ -663,7 +773,7 @@ class NasabahNotifier extends ChangeNotifier {
                     Expanded(
                       child: ButtonPrimary(
                         onTap: () {
-                          Navigator.pop(context);
+                          closeSafeLoading();
                           delete();
                         },
                         name: "Yes",
@@ -680,7 +790,7 @@ class NasabahNotifier extends ChangeNotifier {
   }
 
   delete() async {
-    DialogCustom().showLoading(context);
+    showSafeLoading();
     NasabahRepository.insertAkunCMS(
       token,
       NetworkURL.deleteAkunCms(),
@@ -698,7 +808,7 @@ class NasabahNotifier extends ChangeNotifier {
       nasabahModel!.fhoto1,
       nasabahModel!.fhoto2,
     ).then((e) {
-      Navigator.pop(context);
+      closeSafeLoading();
       if (e['value'] == 1) {
         getNasabah();
         informationDialog(context, "Informasi", e['message']);
@@ -729,12 +839,51 @@ class NasabahNotifier extends ChangeNotifier {
     }
   }
 
-  void onStepCancel() {
-    if (currentStep > 0) {
-      currentStep--;
+  void onStepCancel() async {
+    await onFormClosed();
+
+    if (key.currentState?.isEndDrawerOpen ?? false) {
+      closeSafeLoading();
+    }
+  }
+
+  void resetForm() {
+    nasabahModel = null;
+    kantorModel = null;
+    acctTypeModel = null;
+    selectedAcctType = "";
+    gender = null;
+    editData = false;
+    switchFoto = false;
+
+    tglLahir.clear();
+    noHp.clear();
+    namarek.clear();
+    norek.clear();
+    namaLengkap.clear();
+    nik.clear();
+
+    image = null;
+    image2 = null;
+    currentStep = 0;
+    tombolcapture = false;
+    tombolcaptureselfie = false;
+
+    notifyListeners();
+  }
+
+  Future<void> onFormClosed() async {
+    if (_isSubmitting) return;
+
+    await disposeCamera();
+
+    image = null;
+    image2 = null;
+    tombolcapture = false;
+    tombolcaptureselfie = false;
+
+    if (hasListeners) {
       notifyListeners();
-    } else {
-      Navigator.pop(context);
     }
   }
 
@@ -745,17 +894,42 @@ class NasabahNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  cancelKTP() {
+  cancelKTP() async {
     image2 = null;
-    controller2 = CameraController(cameras[selectCamera!], ResolutionPreset.max);
-    openKTP();
+
+    if (controller2 != null) {
+      await controller2!.dispose();
+      controller2 = null;
+    }
+
+    tombolcapture = false;
     notifyListeners();
   }
 
-  cancelSelfi() {
+  cancelSelfi() async {
     image = null;
-    controller = CameraController(cameras[selectCamera!], ResolutionPreset.max);
-    openKTPSelfi();
+
+    if (controller != null) {
+      await controller!.dispose();
+      controller = null;
+    }
+
+    tombolcaptureselfie = false;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    controller2?.dispose();
+
+    namaLengkap.dispose();
+    noHp.dispose();
+    nik.dispose();
+    norek.dispose();
+    namarek.dispose();
+    tglLahir.dispose();
+
+    super.dispose();
   }
 }

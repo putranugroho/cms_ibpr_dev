@@ -71,19 +71,26 @@ class LimitHarianNotifier extends ChangeNotifier {
       Navigator.pop(context);
       DialogCustom().showLoading(context);
 
-      final List<LimitHarianModel> listResult = list.where((element) => element != limitHarianModel).toList();
+      final List<Map<String, dynamic>> listResult = list
+          .where((element) => element != limitHarianModel)
+          .map<Map<String, dynamic>>((e) => <String, dynamic>{
+                "acct_type": e.acctType,
+                "tarik_tunai": e.trkTunaiHarian,
+                "setor": e.setorHarian,
+                "transfer": e.trfHarian,
+                "qr": e.qrHarian,
+                "ppob": e.ppobHarian,
+              })
+          .toList();
 
-      listResult.add(
-        LimitHarianModel(
-          acctType: kdAcc.text,
-          description: limitHarianModel?.description ?? "",
-          trkTunaiHarian: trkTunai.text.replaceAll(",", ""),
-          setorHarian: setorTunai.text.replaceAll(",", ""),
-          trfHarian: transfer.text.replaceAll(",", ""),
-          qrHarian: qr.text.replaceAll(",", ""),
-          ppobHarian: ppob.text.replaceAll(",", ""),
-        ),
-      );
+      listResult.add(<String, dynamic>{
+        "acct_type": kdAcc.text.trim(),
+        "tarik_tunai": trkTunai.text.replaceAll(",", "").replaceAll(".", "").trim(),
+        "setor": setorTunai.text.replaceAll(",", "").replaceAll(".", "").trim(),
+        "transfer": transfer.text.replaceAll(",", "").replaceAll(".", "").trim(),
+        "qr": qr.text.replaceAll(",", "").replaceAll(".", "").trim(),
+        "ppob": ppob.text.replaceAll(",", "").replaceAll(".", "").trim(),
+      });
 
       LimitRepository.insertLimitHarian(
         token,

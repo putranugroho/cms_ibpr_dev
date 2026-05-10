@@ -118,10 +118,7 @@ class UsersAccessRepository {
 
     // fasilitas sekarang pakai endpoint yang sama dengan by user
     // supaya notifier lama tidak berubah, kita isi userid dengan user login
-    Map<String, dynamic> fasilitasJson = {
-      "userlogin": username,
-      "bpr_id": bprId,
-    };
+    Map<String, dynamic> fasilitasJson = {"action": "list", "type": "CMS"};
 
     if (kDebugMode) {
       print("ENDPOINT URL FASILITAS : $url");

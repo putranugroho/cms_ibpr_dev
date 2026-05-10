@@ -29,6 +29,13 @@ class NasabahPage extends StatelessWidget {
         builder: (context, value, child) => SafeArea(
           child: Scaffold(
             key: value.key,
+            onEndDrawerChanged: (isOpened) {
+              if (!isOpened) {
+                Future.microtask(() async {
+                  await value.onFormClosed();
+                });
+              }
+            },
             endDrawer: Drawer(
               width: 650,
               child: Form(
@@ -339,7 +346,7 @@ class NasabahPage extends StatelessWidget {
                                 height: 220,
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
-                                  child: value.controller2!.value.isInitialized
+                                  child: value.controller2 != null && value.controller2!.value.isInitialized
                                       ? value.image2 == null
                                           ? Transform.flip(
                                               flipX: true,
@@ -390,13 +397,13 @@ class NasabahPage extends StatelessWidget {
                                                 color: Colors.grey,
                                               ),
                                             ),
-                                            child: value.editData
+                                            child: value.editData && value.nasabahModel != null
                                                 ? Transform.flip(
                                                     flipX: true,
                                                     child: Image.network(
                                                       NetworkURL.photoView(
                                                         type: "ktp",
-                                                        fileOrPath: value.nasabahModel!.fhoto1,
+                                                        fileOrPath: value.nasabahModel!.fhoto1 ?? "",
                                                       ),
                                                       fit: BoxFit.cover,
                                                       width: 400,
@@ -458,7 +465,7 @@ class NasabahPage extends StatelessWidget {
                               height: 400,
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: value.controller!.value.isInitialized
+                                child: value.controller != null && value.controller!.value.isInitialized
                                     ? value.image == null
                                         ? Transform.flip(
                                             flipX: true,
@@ -511,7 +518,7 @@ class NasabahPage extends StatelessWidget {
                                                   child: Image.network(
                                                     NetworkURL.photoView(
                                                       type: "selfie",
-                                                      fileOrPath: value.nasabahModel!.fhoto2,
+                                                      fileOrPath: value.nasabahModel!.fhoto2 ?? "",
                                                     ),
                                                     fit: BoxFit.cover,
                                                     width: 250,

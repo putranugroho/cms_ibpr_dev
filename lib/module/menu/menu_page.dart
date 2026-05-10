@@ -81,7 +81,7 @@ class MenuPage extends StatelessWidget {
                           children: [
                             const SizedBox(height: 16),
                             const Text(
-                              "CMS",
+                              "CMS iBPR",
                               style: TextStyle(
                                 fontFamily: "Arial Black",
                                 fontSize: 28,
@@ -91,6 +91,14 @@ class MenuPage extends StatelessWidget {
                             const SizedBox(height: 4),
                             const Text(
                               "Customer Management System",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              "last update 10/05/26 12:50",
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.white,
@@ -494,37 +502,12 @@ class MenuPage extends StatelessWidget {
                                                       vertical: 8,
                                                     ),
                                                     child: Text(
-                                                      "Data Nasabah",
+                                                      "Kelola Akun",
                                                       textAlign: TextAlign.left,
                                                       style: TextStyle(
                                                         fontSize: 12,
                                                         color: Colors.white,
                                                         fontWeight: value.page == 2 ? FontWeight.bold : FontWeight.w300,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                )
-                                              : const SizedBox(),
-
-                                          _hasAccess(
-                                            value,
-                                            menu: "AKUN",
-                                            submenu: "DATA NASABAH",
-                                            subsubmenu: "DAFTAR KARTU",
-                                          )
-                                              ? InkWell(
-                                                  onTap: () => value.gantipage(11),
-                                                  child: Container(
-                                                    padding: const EdgeInsets.symmetric(
-                                                      vertical: 8,
-                                                    ),
-                                                    child: Text(
-                                                      "Daftar Kartu",
-                                                      textAlign: TextAlign.left,
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color: Colors.white,
-                                                        fontWeight: value.page == 11 ? FontWeight.bold : FontWeight.w300,
                                                       ),
                                                     ),
                                                   ),
@@ -544,7 +527,7 @@ class MenuPage extends StatelessWidget {
                                                       vertical: 8,
                                                     ),
                                                     child: Text(
-                                                      "Blokir Nasabah",
+                                                      "Blokir Akun",
                                                       textAlign: TextAlign.left,
                                                       style: TextStyle(
                                                         fontSize: 12,
@@ -569,7 +552,7 @@ class MenuPage extends StatelessWidget {
                                                       vertical: 8,
                                                     ),
                                                     child: Text(
-                                                      "Unblokir Nasabah",
+                                                      "Unblokir Akun",
                                                       textAlign: TextAlign.left,
                                                       style: TextStyle(
                                                         fontSize: 12,
@@ -594,7 +577,7 @@ class MenuPage extends StatelessWidget {
                                                       vertical: 8,
                                                     ),
                                                     child: Text(
-                                                      "Reset Password Nasabah",
+                                                      "Reset Password Akun",
                                                       textAlign: TextAlign.left,
                                                       style: TextStyle(
                                                         fontSize: 12,
@@ -619,7 +602,7 @@ class MenuPage extends StatelessWidget {
                                                       vertical: 8,
                                                     ),
                                                     child: Text(
-                                                      "Tutup Akun Nasabah",
+                                                      "Tutup Akun",
                                                       textAlign: TextAlign.left,
                                                       style: TextStyle(
                                                         fontSize: 12,
@@ -663,96 +646,96 @@ class MenuPage extends StatelessWidget {
                                 : const SizedBox(),
 
                             // MOBILE INFO
-                            _hasAccess(
-                              value,
-                              menu: "AKUN",
-                              submenu: "DATA NASABAH",
-                            )
-                                ? ExpansionTile(
-                                    tilePadding: EdgeInsets.zero,
-                                    childrenPadding: EdgeInsets.zero,
-                                    iconColor: Colors.white,
-                                    collapsedIconColor: Colors.white,
-                                    title: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Image.asset(
-                                            ImageAssets.user,
-                                            color: Colors.white,
-                                            height: 24,
-                                          ),
-                                          const SizedBox(width: 12),
-                                          const Expanded(
-                                            child: Text(
-                                              "MOBILE INFO",
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.normal,
-                                              ),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    children: [
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                                        children: [
-                                          _hasAccess(
-                                            value,
-                                            menu: "AKUN",
-                                            submenu: "DATA NASABAH",
-                                          )
-                                              ? InkWell(
-                                                  onTap: () => value.gantipage(16),
-                                                  child: Container(
-                                                    padding: const EdgeInsets.symmetric(
-                                                      vertical: 8,
-                                                    ),
-                                                    child: Text(
-                                                      "Data Nasabah",
-                                                      textAlign: TextAlign.left,
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color: Colors.white,
-                                                        fontWeight: value.page == 16 ? FontWeight.bold : FontWeight.w300,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                )
-                                              : const SizedBox(),
-                                          _hasAccess(
-                                            value,
-                                            menu: "AKUN",
-                                            submenu: "DATA NASABAH",
-                                            subsubmenu: "TUTUP AKUN IBPR",
-                                          )
-                                              ? InkWell(
-                                                  onTap: () => value.gantipage(13),
-                                                  child: Container(
-                                                    padding: const EdgeInsets.symmetric(
-                                                      vertical: 8,
-                                                    ),
-                                                    child: Text(
-                                                      "Tutup Akun Nasabah",
-                                                      textAlign: TextAlign.left,
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color: Colors.white,
-                                                        fontWeight: value.page == 13 ? FontWeight.bold : FontWeight.w300,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                )
-                                              : const SizedBox(),
-                                        ],
-                                      )
-                                    ],
-                                  )
-                                : const SizedBox(),
+                            // _hasAccess(
+                            //   value,
+                            //   menu: "AKUN",
+                            //   submenu: "DATA NASABAH",
+                            // )
+                            //     ? ExpansionTile(
+                            //         tilePadding: EdgeInsets.zero,
+                            //         childrenPadding: EdgeInsets.zero,
+                            //         iconColor: Colors.white,
+                            //         collapsedIconColor: Colors.white,
+                            //         title: Container(
+                            //           padding: const EdgeInsets.symmetric(
+                            //             vertical: 16,
+                            //           ),
+                            //           child: Row(
+                            //             children: [
+                            //               Image.asset(
+                            //                 ImageAssets.user,
+                            //                 color: Colors.white,
+                            //                 height: 24,
+                            //               ),
+                            //               const SizedBox(width: 12),
+                            //               const Expanded(
+                            //                 child: Text(
+                            //                   "MOBILE INFO",
+                            //                   style: TextStyle(
+                            //                     color: Colors.white,
+                            //                     fontWeight: FontWeight.normal,
+                            //                   ),
+                            //                 ),
+                            //               )
+                            //             ],
+                            //           ),
+                            //         ),
+                            //         children: [
+                            //           Column(
+                            //             crossAxisAlignment: CrossAxisAlignment.stretch,
+                            //             children: [
+                            //               _hasAccess(
+                            //                 value,
+                            //                 menu: "AKUN",
+                            //                 submenu: "DATA NASABAH",
+                            //               )
+                            //                   ? InkWell(
+                            //                       onTap: () => value.gantipage(16),
+                            //                       child: Container(
+                            //                         padding: const EdgeInsets.symmetric(
+                            //                           vertical: 8,
+                            //                         ),
+                            //                         child: Text(
+                            //                           "Data Nasabah",
+                            //                           textAlign: TextAlign.left,
+                            //                           style: TextStyle(
+                            //                             fontSize: 12,
+                            //                             color: Colors.white,
+                            //                             fontWeight: value.page == 16 ? FontWeight.bold : FontWeight.w300,
+                            //                           ),
+                            //                         ),
+                            //                       ),
+                            //                     )
+                            //                   : const SizedBox(),
+                            //               _hasAccess(
+                            //                 value,
+                            //                 menu: "AKUN",
+                            //                 submenu: "DATA NASABAH",
+                            //                 subsubmenu: "TUTUP AKUN IBPR",
+                            //               )
+                            //                   ? InkWell(
+                            //                       onTap: () => value.gantipage(13),
+                            //                       child: Container(
+                            //                         padding: const EdgeInsets.symmetric(
+                            //                           vertical: 8,
+                            //                         ),
+                            //                         child: Text(
+                            //                           "Tutup Akun Nasabah",
+                            //                           textAlign: TextAlign.left,
+                            //                           style: TextStyle(
+                            //                             fontSize: 12,
+                            //                             color: Colors.white,
+                            //                             fontWeight: value.page == 13 ? FontWeight.bold : FontWeight.w300,
+                            //                           ),
+                            //                         ),
+                            //                       ),
+                            //                     )
+                            //                   : const SizedBox(),
+                            //             ],
+                            //           )
+                            //         ],
+                            //       )
+                            //     : const SizedBox(),
 
                             // MPIN
                             _hasAnySubsubmenu(
@@ -778,12 +761,6 @@ class MenuPage extends StatelessWidget {
                                       menu: "MPIN",
                                       submenu: "RESET MPIN",
                                       subsubmenus: const ["RESET MPIN"],
-                                    ) ||
-                                    _hasAnySubsubmenu(
-                                      value,
-                                      menu: "MPIN",
-                                      submenu: "GANTI MPIN",
-                                      subsubmenus: const ["GANTI MPIN"],
                                     )
                                 ? ExpansionTile(
                                     tilePadding: EdgeInsets.zero,
@@ -914,30 +891,30 @@ class MenuPage extends StatelessWidget {
                                                   ),
                                                 )
                                               : const SizedBox(),
-                                          _hasAccess(
-                                            value,
-                                            menu: "MPIN",
-                                            submenu: "GANTI MPIN",
-                                            subsubmenu: "GANTI MPIN",
-                                          )
-                                              ? InkWell(
-                                                  onTap: () => value.gantipage(9),
-                                                  child: Container(
-                                                    padding: const EdgeInsets.symmetric(
-                                                      vertical: 8,
-                                                    ),
-                                                    child: Text(
-                                                      "Ganti MPIN",
-                                                      textAlign: TextAlign.left,
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color: Colors.white,
-                                                        fontWeight: value.page == 9 ? FontWeight.bold : FontWeight.w300,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                )
-                                              : const SizedBox(),
+                                          // _hasAccess(
+                                          //   value,
+                                          //   menu: "MPIN",
+                                          //   submenu: "GANTI MPIN",
+                                          //   subsubmenu: "GANTI MPIN",
+                                          // )
+                                          //     ? InkWell(
+                                          //         onTap: () => value.gantipage(9),
+                                          //         child: Container(
+                                          //           padding: const EdgeInsets.symmetric(
+                                          //             vertical: 8,
+                                          //           ),
+                                          //           child: Text(
+                                          //             "Ganti MPIN",
+                                          //             textAlign: TextAlign.left,
+                                          //             style: TextStyle(
+                                          //               fontSize: 12,
+                                          //               color: Colors.white,
+                                          //               fontWeight: value.page == 9 ? FontWeight.bold : FontWeight.w300,
+                                          //             ),
+                                          //           ),
+                                          //         ),
+                                          //       )
+                                          //     : const SizedBox(),
                                         ],
                                       )
                                     ],

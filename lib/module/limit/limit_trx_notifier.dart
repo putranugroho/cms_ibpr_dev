@@ -71,19 +71,26 @@ class LimitTrxNotifier extends ChangeNotifier {
       Navigator.pop(context);
       DialogCustom().showLoading(context);
 
-      final List<LimitTrxModel> listResult = list.where((element) => element != limitHarianModel).toList();
+      final List<Map<String, dynamic>> listResult = list
+          .where((element) => element != limitHarianModel)
+          .map<Map<String, dynamic>>((e) => <String, dynamic>{
+                "acct_type": e.acctType,
+                "tarik_tunai": e.trkTunaiTrx,
+                "setor": e.setorTrx,
+                "transfer": e.trfTrx,
+                "qr": e.qrTrx,
+                "ppob": e.ppobTrx,
+              })
+          .toList();
 
-      listResult.add(
-        LimitTrxModel(
-          acctType: kdAcc.text,
-          description: limitHarianModel?.description ?? "",
-          trfTrx: transfer.text.replaceAll(",", ""),
-          setorTrx: setorTunai.text.replaceAll(",", ""),
-          trkTunaiTrx: trkTunai.text.replaceAll(",", ""),
-          qrTrx: qr.text.replaceAll(",", ""),
-          ppobTrx: ppob.text.replaceAll(",", ""),
-        ),
-      );
+      listResult.add(<String, dynamic>{
+        "acct_type": kdAcc.text.trim(),
+        "tarik_tunai": trkTunai.text.replaceAll(",", "").replaceAll(".", "").trim(),
+        "setor": setorTunai.text.replaceAll(",", "").replaceAll(".", "").trim(),
+        "transfer": transfer.text.replaceAll(",", "").replaceAll(".", "").trim(),
+        "qr": qr.text.replaceAll(",", "").replaceAll(".", "").trim(),
+        "ppob": ppob.text.replaceAll(",", "").replaceAll(".", "").trim(),
+      });
 
       LimitRepository.insertLimitTrx(
         token,

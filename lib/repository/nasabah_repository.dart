@@ -368,7 +368,7 @@ class NasabahRepository {
     final cleanUrl = _cleanUri(url).toString();
 
     Map<String, dynamic> json = {
-      "action": action,
+      "action": "update",
       "no_ktp": noKtp,
       "nama": nama,
       "no_rek": noRek,
@@ -384,7 +384,7 @@ class NasabahRepository {
       "userlogin": username,
       "fhoto_1": fhoto1,
       "fhoto_2": fhoto2,
-      "fhoto_3": "",
+      "fhoto_3": fhoto1,
       "bpr_id": bprId,
     };
 

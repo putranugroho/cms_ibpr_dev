@@ -20,6 +20,12 @@ class LimitRepository {
     return data;
   }
 
+  static int _toInt(dynamic value) {
+    final raw = (value ?? "0").toString();
+    final clean = raw.replaceAll(",", "").replaceAll(".", "").trim();
+    return int.tryParse(clean) ?? 0;
+  }
+
   static int _mapValueFromGo(dynamic response) {
     final code = (response['code'] ?? '').toString();
     return code == "000" ? 1 : 0;
@@ -163,27 +169,13 @@ class LimitRepository {
 
     final List<Map<String, dynamic>> mappedLimit = rawLimit.map((e) {
       final row = Map<String, dynamic>.from(e);
+
       return {
-        "tarik_tunai": int.tryParse(
-              (row["trkTunaiHarian"] ?? row["tarik_tunai"] ?? "0").toString(),
-            ) ??
-            0,
-        "setor": int.tryParse(
-              (row["setorHarian"] ?? row["setor"] ?? "0").toString(),
-            ) ??
-            0,
-        "transfer": int.tryParse(
-              (row["trfHarian"] ?? row["transfer"] ?? "0").toString(),
-            ) ??
-            0,
-        "qr": int.tryParse(
-              (row["qrHarian"] ?? row["qr"] ?? "0").toString(),
-            ) ??
-            0,
-        "ppob": int.tryParse(
-              (row["ppobHarian"] ?? row["ppob"] ?? "0").toString(),
-            ) ??
-            0,
+        "tarik_tunai": _toInt(row["trkTunaiHarian"] ?? row["tarik_tunai"]),
+        "setor": _toInt(row["setorHarian"] ?? row["setor"]),
+        "transfer": _toInt(row["trfHarian"] ?? row["transfer"]),
+        "qr": _toInt(row["qrHarian"] ?? row["qr"]),
+        "ppob": _toInt(row["ppobHarian"] ?? row["ppob"]),
         "acct_type": (row["acctType"] ?? row["acct_type"] ?? "").toString(),
       };
     }).toList();
@@ -196,25 +188,14 @@ class LimitRepository {
       "limit": mappedLimit,
     };
 
-    Dio dio = _dio();
-
-    if (kDebugMode) {
-      print("ENDPOINT URL INSERT LIMIT HARIAN : $url");
-      print("REQUEST BODY INSERT LIMIT HARIAN : $json");
-    }
-
+    final dio = _dio();
     final response = await dio.post(url, data: json);
     final decoded = _safeDecode(response.data);
-
-    if (kDebugMode) {
-      print("RESPONSE STATUS CODE INSERT LIMIT HARIAN : ${response.statusCode}");
-      print("RESPONSE DATA INSERT LIMIT HARIAN : $decoded");
-    }
 
     return {
       "value": _mapValueFromGo(decoded),
       "message": _mapMessageFromGo(decoded),
-      "data": decoded['data'],
+      "data": decoded["data"],
       "raw": decoded,
     };
   }
@@ -230,27 +211,13 @@ class LimitRepository {
 
     final List<Map<String, dynamic>> mappedLimit = rawLimit.map((e) {
       final row = Map<String, dynamic>.from(e);
+
       return {
-        "tarik_tunai": int.tryParse(
-              (row["trkTunaiTrx"] ?? row["tarik_tunai"] ?? "0").toString(),
-            ) ??
-            0,
-        "setor": int.tryParse(
-              (row["setorTrx"] ?? row["setor"] ?? "0").toString(),
-            ) ??
-            0,
-        "transfer": int.tryParse(
-              (row["trfTrx"] ?? row["transfer"] ?? "0").toString(),
-            ) ??
-            0,
-        "qr": int.tryParse(
-              (row["qrTrx"] ?? row["qr"] ?? "0").toString(),
-            ) ??
-            0,
-        "ppob": int.tryParse(
-              (row["ppobTrx"] ?? row["ppob"] ?? "0").toString(),
-            ) ??
-            0,
+        "tarik_tunai": _toInt(row["trkTunaiTrx"] ?? row["tarik_tunai"]),
+        "setor": _toInt(row["setorTrx"] ?? row["setor"]),
+        "transfer": _toInt(row["trfTrx"] ?? row["transfer"]),
+        "qr": _toInt(row["qrTrx"] ?? row["qr"]),
+        "ppob": _toInt(row["ppobTrx"] ?? row["ppob"]),
         "acct_type": (row["acctType"] ?? row["acct_type"] ?? "").toString(),
       };
     }).toList();
@@ -263,25 +230,14 @@ class LimitRepository {
       "limit": mappedLimit,
     };
 
-    Dio dio = _dio();
-
-    if (kDebugMode) {
-      print("ENDPOINT URL INSERT LIMIT TRX : $url");
-      print("REQUEST BODY INSERT LIMIT TRX : $json");
-    }
-
+    final dio = _dio();
     final response = await dio.post(url, data: json);
     final decoded = _safeDecode(response.data);
-
-    if (kDebugMode) {
-      print("RESPONSE STATUS CODE INSERT LIMIT TRX : ${response.statusCode}");
-      print("RESPONSE DATA INSERT LIMIT TRX : $decoded");
-    }
 
     return {
       "value": _mapValueFromGo(decoded),
       "message": _mapMessageFromGo(decoded),
-      "data": decoded['data'],
+      "data": decoded["data"],
       "raw": decoded,
     };
   }
