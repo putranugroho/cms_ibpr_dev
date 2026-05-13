@@ -84,7 +84,7 @@ class UsersAccessPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      "Username ",
+                      "User ID ",
                       style: TextStyle(fontSize: 12),
                     ),
                     const SizedBox(height: 4),
@@ -93,7 +93,7 @@ class UsersAccessPage extends StatelessWidget {
                       validator: (e) {
                         final text = (e ?? '').trim();
                         if (text.isEmpty) {
-                          return "Username wajib diisi";
+                          return "User ID wajib diisi";
                         }
                         return null;
                       },
@@ -212,11 +212,42 @@ class UsersAccessPage extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: 16),
-                    ButtonPrimary(
-                      onTap: () {
-                        value.cek();
-                      },
-                      name: "Simpan",
+                    Row(
+                      children: [
+                        if (value.editData) ...[
+                          Expanded(
+                            child: InkWell(
+                              onTap: () {
+                                value.hapusUsersAccess();
+                              },
+                              child: Container(
+                                height: 46,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Text(
+                                  "Hapus",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                        ],
+                        Expanded(
+                          child: ButtonPrimary(
+                            onTap: () {
+                              value.cek();
+                            },
+                            name: value.editData ? "Update" : "Simpan",
+                          ),
+                        ),
+                      ],
                     )
                   ],
                 ),

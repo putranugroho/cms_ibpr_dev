@@ -334,4 +334,93 @@ class UsersAccessNotifier extends ChangeNotifier {
 
     notifyListeners();
   }
+
+  Future<void> hapusUsersAccess() async {
+    if (usersAccessModel == null) {
+      informationDialog(context, "Informasi", "Pilih user terlebih dahulu");
+      return;
+    }
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Konfirmasi"),
+        content: Text(
+          "Hapus user ${usersAccessModel?.userid ?? '-'}?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Batal"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              "Hapus",
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    List<FasilitasAddModel> listModel = [];
+
+    final sourceFasilitas = listModelUsers.isNotEmpty
+        ? listModelUsers
+        : listAddFasilitas
+            .map(
+              (e) => FasilitasAddModel(
+                modul: e.modul,
+                menu: e.menu,
+                submenu: e.submenu,
+                subsubmenu: e.subsubmenu,
+                urut: e.urut,
+                flag: "true",
+              ),
+            )
+            .toList();
+
+    for (final item in sourceFasilitas) {
+      listModel.add(
+        FasilitasAddModel(
+          modul: item.modul,
+          menu: item.menu,
+          submenu: item.submenu,
+          subsubmenu: item.subsubmenu,
+          urut: item.urut,
+          flag: item.flag ?? "false",
+        ),
+      );
+    }
+
+    Navigator.pop(context);
+    DialogCustom().showLoading(context);
+
+    UsersAccessRepository.deleteUsersId(
+      token,
+      NetworkURL.deleteUsersId(),
+      users!.bprId,
+      users!.usersId,
+      usersAccessModel?.userid ?? username.text.trim(),
+      password.text,
+      namaUsers.text.trim(),
+      kantorModel?.kdKantor ?? usersAccessModel?.kdkantor ?? "",
+      tglKadaluarsa.text.trim(),
+      "0",
+      jsonEncode(listModel),
+    ).then((value) {
+      Navigator.pop(context);
+
+      if (value['value'] == 1) {
+        getUsersAccess();
+        tambah();
+        informationDialog(context, "Informasi", value['message']);
+      } else {
+        informationDialog(context, "Informasi", value['message']);
+      }
+    });
+  }
 }

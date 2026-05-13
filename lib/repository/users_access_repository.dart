@@ -281,4 +281,66 @@ class UsersAccessRepository {
       "data": decoded['data'],
     };
   }
+
+  static Future<dynamic> deleteUsersId(
+    String token,
+    String url,
+    String bprId,
+    String usersId,
+    String useridDelete,
+    String password,
+    String namaUsers,
+    String kdkantor,
+    String tglexp,
+    String lvluser,
+    String fasilitas,
+  ) async {
+    final List<dynamic> fasilitasRaw = fasilitas.trim().isEmpty ? [] : jsonDecode(fasilitas);
+
+    final List<Map<String, dynamic>> fasilitasMapped = fasilitasRaw.map((e) {
+      final row = Map<String, dynamic>.from(e);
+      return {
+        "modul": _normalizeModulToGo(row['modul']),
+        "menu": row['menu'],
+        "submenu": row['submenu'],
+        "subsubmenu": row['subsubmenu'],
+        "urut": row['urut'],
+        "flag": _normalizeFlagToGo(row['flag']),
+      };
+    }).toList();
+
+    Map<String, dynamic> json = {
+      "action": "delete",
+      "bpr_id": bprId,
+      "userlogin": _normalizeUpper(usersId),
+      "userid": _normalizeUpper(useridDelete),
+      "pass": encryptString(password),
+      "namauser": _normalizeUpper(namaUsers),
+      "kdkantor": kdkantor,
+      "tglexp": _normalizeTglExpToGo(tglexp),
+      "lvluser": lvluser,
+      "fasilitas": fasilitasMapped,
+    };
+
+    Dio dio = _dio();
+
+    if (kDebugMode) {
+      print("ENDPOINT URL DELETE USER : $url");
+      print("REQUEST BODY DELETE USER : $json");
+    }
+
+    final response = await dio.post(url, data: json);
+    final decoded = _safeDecode(response.data);
+
+    if (kDebugMode) {
+      print("RESPONSE STATUS CODE DELETE USER : ${response.statusCode}");
+      print("RESPONSE DATA DELETE USER : $decoded");
+    }
+
+    return {
+      "value": _mapValueFromGo(decoded),
+      "message": _mapMessageFromGo(decoded),
+      "data": decoded['data'],
+    };
+  }
 }

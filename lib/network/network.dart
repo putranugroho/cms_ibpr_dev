@@ -63,6 +63,10 @@ class NetworkURL {
     return "$url_go/user_management";
   }
 
+  static String deleteUsersId() {
+    return "$url_go/user_management";
+  }
+
   static String getListFasilitas() {
     return "$url_go/master_menu";
   }
