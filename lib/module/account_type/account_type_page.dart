@@ -74,6 +74,7 @@ class AccountTypePage extends StatelessWidget {
                   ),
                   TextFormField(
                     controller: value.kdAcc,
+                    enabled: !value.editdata,
                     validator: (e) {
                       if (e!.isEmpty) {
                         return "Please fill this field";

@@ -2,6 +2,8 @@ import 'package:cms_ibpr/models/index.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Pref {
+  static const Duration idleDuration = Duration(minutes: 5);
+
   static String bprId = "bpr_id";
   static String usersId = "users_id";
   static String namaUsers = "nama_users";
@@ -16,6 +18,7 @@ class Pref {
     pref.setString(Pref.namaUsers, users.namaUsers);
     pref.setString(Pref.kodeKantor, users.kodeKantor);
     pref.setString(Pref.namaKantor, users.namaKantor);
+    pref.setInt(Pref.lastActivityAt, DateTime.now().millisecondsSinceEpoch);
   }
 
   Future<String> getFasilitas() async {
@@ -48,5 +51,25 @@ class Pref {
     pref.remove(Pref.kodeKantor);
     pref.remove(Pref.namaKantor);
     pref.remove(Pref.fasilitas);
+    pref.remove(Pref.lastActivityAt);
+  }
+
+  static String lastActivityAt = "last_activity_at";
+
+  Future<void> setLastActivityNow() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    await pref.setInt(Pref.lastActivityAt, DateTime.now().millisecondsSinceEpoch);
+  }
+
+  Future<bool> isSessionExpired(Duration idleDuration) async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    final lastActivity = pref.getInt(Pref.lastActivityAt);
+
+    if (lastActivity == null) return false;
+
+    final last = DateTime.fromMillisecondsSinceEpoch(lastActivity);
+    final diff = DateTime.now().difference(last);
+
+    return diff >= idleDuration;
   }
 }

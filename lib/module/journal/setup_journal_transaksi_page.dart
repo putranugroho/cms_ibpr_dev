@@ -1,6 +1,7 @@
 import 'package:cms_ibpr/module/journal/setup_journal_transaksi_notifier.dart';
 import 'package:cms_ibpr/utils/button_custom.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../utils/colors.dart';
@@ -403,6 +404,8 @@ class SetupJournalTransaksiPage extends StatelessWidget {
                         child: TextFormField(
                           controller: accountController,
                           enabled: enabled,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                           decoration: InputDecoration(
                             labelText: "Nomor Rekening",
                             hintText: enabled ? null : "OFF jika Rek Nasabah",

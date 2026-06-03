@@ -820,9 +820,26 @@ class NasabahNotifier extends ChangeNotifier {
 
   int currentStep = 0;
 
+  bool validateFotoKtpStep() {
+    if (!editData && image2 == null) {
+      informationDialog(context, "Error", "Foto KTP wajib diisi");
+      return false;
+    }
+    return true;
+  }
+
+  bool validateFotoSelfieStep() {
+    if (!editData && image == null) {
+      informationDialog(context, "Error", "Foto Selfie KTP wajib diisi");
+      return false;
+    }
+    return true;
+  }
+
   void onStepContinue() {
     if (currentStep == 0) {
       final valid = validateStepDataDiri();
+
       if (!valid) return;
 
       currentStep++;
@@ -830,10 +847,19 @@ class NasabahNotifier extends ChangeNotifier {
       return;
     }
 
-    if (currentStep < 2) {
+    if (currentStep == 1) {
+      final valid = validateFotoKtpStep();
+      if (!valid) return;
+
       currentStep++;
       notifyListeners();
-    } else {
+      return;
+    }
+
+    if (currentStep == 2) {
+      final valid = validateFotoSelfieStep();
+      if (!valid) return;
+
       cek();
       notifyListeners();
     }

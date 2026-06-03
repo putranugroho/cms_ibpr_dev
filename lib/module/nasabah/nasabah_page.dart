@@ -194,6 +194,7 @@ class NasabahPage extends StatelessWidget {
                             TextFormField(
                               enabled: !value.editData,
                               controller: value.noHp,
+                              keyboardType: TextInputType.number,
                               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                               validator: (e) {
                                 final text = (e ?? '').trim();
@@ -218,7 +219,11 @@ class NasabahPage extends StatelessWidget {
                             TextFormField(
                               enabled: !value.editData,
                               controller: value.nik,
-                              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(16),
+                              ],
                               validator: (e) {
                                 final text = (e ?? '').trim();
                                 if (text.isEmpty) {
@@ -262,7 +267,7 @@ class NasabahPage extends StatelessWidget {
                                   activeColor: Colors.blue,
                                   value: "l",
                                   groupValue: value.gender,
-                                  onChanged: (e) => value.pilihGender("l"),
+                                  onChanged: value.editData ? null : (e) => value.pilihGender("l"),
                                 ),
                                 const Text("Laki-laki"),
                                 const SizedBox(width: 24),
@@ -270,7 +275,7 @@ class NasabahPage extends StatelessWidget {
                                   activeColor: Colors.blue,
                                   value: "p",
                                   groupValue: value.gender,
-                                  onChanged: (e) => value.pilihGender("p"),
+                                  onChanged: value.editData ? null : (e) => value.pilihGender("p"),
                                 ),
                                 const Text("Perempuan"),
                               ],

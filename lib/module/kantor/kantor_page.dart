@@ -86,7 +86,7 @@ class KantorPage extends StatelessWidget {
                   TextFormField(
                     controller: value.kdKantor,
                     validator: (e) {
-                      if (e!.isEmpty) {
+                      if ((e ?? '').trim().isEmpty) {
                         return "Please fill this field";
                       } else {
                         return null;
@@ -108,7 +108,7 @@ class KantorPage extends StatelessWidget {
                   TextFormField(
                     controller: value.namakantor,
                     validator: (e) {
-                      if (e!.isEmpty) {
+                      if ((e ?? '').trim().isEmpty) {
                         return "Please fill this field";
                       } else {
                         return null;

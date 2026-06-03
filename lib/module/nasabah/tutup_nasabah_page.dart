@@ -1,6 +1,7 @@
 import 'package:cms_ibpr/module/nasabah/blokir_nasabah_notifier.dart';
 import 'package:cms_ibpr/utils/button_custom.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../utils/colors.dart';
@@ -50,6 +51,8 @@ class TutupNasabahPage extends StatelessWidget {
                     ),
                     TextFormField(
                       controller: value.noHp,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: InputDecoration(
                           suffixIcon: InkWell(
                         onTap: () {
@@ -58,11 +61,8 @@ class TutupNasabahPage extends StatelessWidget {
                         child: Container(
                           width: 100,
                           alignment: Alignment.center,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              color: colorPrimary),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: colorPrimary),
                           child: const Text(
                             "Tampilkan",
                             style: TextStyle(
@@ -158,22 +158,12 @@ class TutupNasabahPage extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        Radio(
-                            value: "l",
-                            groupValue: value.gender,
-                            onChanged: (e) {
-                              value.gantiGender("l");
-                            }),
+                        Radio(value: "l", groupValue: value.gender, onChanged: null),
                         const Text("Laki-laki"),
                         const SizedBox(
                           width: 32,
                         ),
-                        Radio(
-                            value: "p",
-                            groupValue: value.gender,
-                            onChanged: (e) {
-                              value.gantiGender("p");
-                            }),
+                        Radio(value: "p", groupValue: value.gender, onChanged: null),
                         const Text("Perempuan"),
                         const SizedBox(
                           width: 32,

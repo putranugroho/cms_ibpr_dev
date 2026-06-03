@@ -9,9 +9,11 @@ import 'package:cms_ibpr/utils/dialog_loading.dart';
 import 'package:cms_ibpr/utils/informationdialog.dart';
 import 'package:cms_ibpr/utils/url.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../repository/auth_repository.dart';
 import '../../utils/button_custom.dart';
+import '../../utils/web/web_close_handler.dart';
 
 class MenuNotifier extends ChangeNotifier {
   final BuildContext context;
@@ -19,6 +21,9 @@ class MenuNotifier extends ChangeNotifier {
   bool isCoreStatusAvailable = false;
   bool isSigninSignoffLoading = false;
   bool isStatusCoreLoading = false;
+  bool _isAutoLoggingOut = false;
+  bool _browserCloseRegistered = false;
+  bool _browserClosing = false;
   String coreStatusMessage = "Status core belum tersedia";
 
   MenuNotifier({required this.context}) {
@@ -56,7 +61,25 @@ class MenuNotifier extends ChangeNotifier {
       users = value;
 
       if (users != null) {
+        final expired = await Pref().isSessionExpired(
+          Pref.idleDuration,
+        );
+
+        if (expired) {
+          await Pref().remove();
+
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginPage()),
+            (route) => false,
+          );
+
+          return;
+        }
+
+        await Pref().setLastActivityNow();
         await getStatusCore();
+        await initBrowserCloseHandler();
       }
 
       isloading = false;
@@ -568,5 +591,66 @@ class MenuNotifier extends ChangeNotifier {
         }
       });
     }
+  }
+
+  Future<void> autoLogoutByIdle() async {
+    if (_isAutoLoggingOut) return;
+    _isAutoLoggingOut = true;
+
+    try {
+      if (users != null) {
+        await AuthRepository.logOut(
+          NetworkURL.logout(),
+          users!.bprId,
+          users!.usersId,
+          users!.usersId,
+        );
+      }
+    } catch (e) {
+      debugPrint("AUTO LOGOUT ERROR: $e");
+    }
+
+    await Pref().remove();
+
+    if (context.mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (route) => false,
+      );
+
+      CustomDialog.messageResponse(
+        context,
+        "Sesi berakhir karena tidak ada aktivitas.",
+      );
+    }
+
+    _isAutoLoggingOut = false;
+  }
+
+  Future<void> initBrowserCloseHandler() async {
+    if (!kIsWeb) return;
+
+    if (_browserCloseRegistered) return;
+
+    _browserCloseRegistered = true;
+
+    await registerBrowserCloseHandler(() async {
+      await logoutFromBrowserClose();
+    });
+  }
+
+  Future<void> logoutFromBrowserClose() async {
+    if (_browserClosing) return;
+
+    _browserClosing = true;
+
+    try {
+      await Pref().setLastActivityNow();
+    } catch (e) {
+      debugPrint("SAVE LAST ACTIVITY ON CLOSE ERROR: $e");
+    }
+
+    _browserClosing = false;
   }
 }

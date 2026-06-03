@@ -32,10 +32,20 @@ class LoginNotifier extends ChangeNotifier {
   List<FasilitasAddModel> listFasilitas = [];
 
   getProfile() async {
-    Pref().getUsers().then((value) {
+    Pref().getUsers().then((value) async {
       users = value;
       if (users != null && (users!.usersId ?? "").toString().isNotEmpty) {
-        login();
+        final expired = await Pref().isSessionExpired(
+          Pref.idleDuration,
+        );
+
+        if (expired) {
+          await Pref().remove();
+          nothing();
+        } else {
+          await Pref().setLastActivityNow();
+          login();
+        }
       } else {
         nothing();
       }
