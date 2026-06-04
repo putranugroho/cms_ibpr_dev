@@ -412,6 +412,25 @@ class NasabahNotifier extends ChangeNotifier {
   cek() async {
     if (keyForm.currentState!.validate()) {
       _isSubmitting = true;
+      if (!editData) {
+        if (image2 == null) {
+          informationDialog(
+            context,
+            "Error",
+            "Foto KTP wajib diisi. Silakan buka kamera dan klik tombol foto terlebih dahulu.",
+          );
+          return;
+        }
+
+        if (image == null) {
+          informationDialog(
+            context,
+            "Error",
+            "Foto Selfie KTP wajib diisi. Silakan buka kamera dan klik tombol foto terlebih dahulu.",
+          );
+          return;
+        }
+      }
       if (editData) {
         await closeFormOnly();
         showSafeLoading();

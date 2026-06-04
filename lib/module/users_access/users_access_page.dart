@@ -66,6 +66,16 @@ class UsersAccessPage extends StatelessWidget {
                         ),
                       ),
                     ],
+                    if (value.kantorError != null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        value.kantorError!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     const Text(
                       "Nama Users ",
@@ -112,7 +122,7 @@ class UsersAccessPage extends StatelessWidget {
                           onPressed: () {
                             value.gantiobscure();
                           },
-                          icon: value.obscure ? Icon(Icons.visibility) : Icon(Icons.visibility_off),
+                          icon: value.obscure ? const Icon(Icons.visibility) : const Icon(Icons.visibility_off),
                         ),
                       ),
                       validator: (e) {
@@ -129,19 +139,20 @@ class UsersAccessPage extends StatelessWidget {
                       style: TextStyle(fontSize: 12),
                     ),
                     const SizedBox(height: 4),
-                    InkWell(
+                    TextFormField(
+                      controller: value.tglKadaluarsa,
+                      readOnly: true,
                       onTap: () => value.gantiTanggal(),
-                      child: TextFormField(
-                        controller: value.tglKadaluarsa,
-                        enabled: false,
-                        validator: (e) {
-                          final text = (e ?? '').trim();
-                          if (text.isEmpty) {
-                            return "Tanggal kadaluarsa wajib diisi";
-                          }
-                          return null;
-                        },
+                      decoration: const InputDecoration(
+                        suffixIcon: Icon(Icons.calendar_month),
                       ),
+                      validator: (e) {
+                        final text = (e ?? '').trim();
+                        if (text.isEmpty) {
+                          return "Tanggal kadaluarsa wajib diisi";
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
                     const Text(
@@ -156,9 +167,10 @@ class UsersAccessPage extends StatelessWidget {
                         ? ListView.builder(
                             itemCount: value.listFasilitas.length,
                             shrinkWrap: true,
-                            physics: ClampingScrollPhysics(),
+                            physics: const ClampingScrollPhysics(),
                             itemBuilder: (context, i) {
                               final data = value.listFasilitas[i];
+
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
@@ -195,7 +207,7 @@ class UsersAccessPage extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 8)
+                                  const SizedBox(height: 8),
                                 ],
                               );
                             },
