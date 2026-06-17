@@ -10,6 +10,7 @@ export 'acct_type_model.dart';
 export 'fasilitas_add_model.dart';
 export 'limit_harian_model.dart';
 export 'fasilitas_model.dart';
+export 'laporan_model.dart';
 import 'package:quiver/core.dart';
 
 T? checkOptional<T>(Optional<T?>? optional, T? Function()? def) {

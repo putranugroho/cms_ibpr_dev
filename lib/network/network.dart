@@ -267,4 +267,8 @@ class NetworkURL {
   static String statusCore() {
     return "$url_go/stscore";
   }
+
+  static String trxLog() {
+    return "$url_go/trx_log";
+  }
 }

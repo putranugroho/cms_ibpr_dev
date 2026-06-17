@@ -240,8 +240,11 @@ class MenuPage extends StatelessWidget {
     if (page == 16) return const UsersInfoPage();
     if (page == 17) return const ResetPasswordNasabahPage();
     if (page == 18) return const SetupJournalTransaksiPage();
+    if (page == 19) return const LaporanUserAccessPage();
+    if (page == 20) return const LaporanAkunIbprPage();
+    if (page == 21) return const LaporanTransaksiPage();
 
-    return const LaporanPage();
+    return const DashboardPage();
   }
 
   @override
@@ -250,9 +253,75 @@ class MenuPage extends StatelessWidget {
       create: (_) => MenuNotifier(context: context),
       child: Consumer<MenuNotifier>(
         builder: (context, value, child) {
+          final isSetupActive = [1, 3, 5, 6, 18].contains(value.page);
           final isIbprActive = [2, 10, 12, 13, 15, 17].contains(value.page);
           final isMpinActive = [4, 7, 8, 14].contains(value.page);
-          final isLaporanActive = value.page == 19;
+          final isLaporanActive = [19, 20, 21].contains(value.page);
+
+          final canOpenKantor = _hasAccess(
+            value,
+            menu: "SETUP",
+            submenu: "KANTOR",
+          );
+          final canOpenUserAccess = _hasAccess(
+            value,
+            menu: "SETUP",
+            submenu: "USER ACCESS",
+          );
+          final canOpenAccountType = _hasAccess(
+            value,
+            menu: "SETUP",
+            submenu: "ACCOUNT TYPE",
+          );
+          final canOpenSetupLimit = _hasAccess(
+            value,
+            menu: "SETUP",
+            submenu: "SETUP LIMIT",
+          );
+
+          // Backward compatible:
+          // Di kode existing, Setup Journal Transaksi tampil memakai akses SETUP LIMIT.
+          // Jika master fasilitas sudah punya submenu khusus SETUP JOURNAL TRANSAKSI,
+          // akses itu juga akan dipakai.
+          final canOpenSetupJournalTransaksi = _hasAccess(
+                value,
+                menu: "SETUP",
+                submenu: "SETUP JOURNAL TRANSAKSI",
+              ) ||
+              _hasAccess(
+                value,
+                menu: "SETUP",
+                submenu: "SETUP JURNAL TRANSAKSI",
+              ) ||
+              canOpenSetupLimit;
+
+          final hasAnySetupAccess = canOpenKantor || canOpenUserAccess || canOpenAccountType || canOpenSetupLimit || canOpenSetupJournalTransaksi;
+
+          final hasLegacyLaporanAccess = _hasAccess(
+            value,
+            menu: "LAPORAN",
+            submenu: "LAPORAN HARIAN",
+            subsubmenu: "LAPORAN HARIAN",
+          );
+          final canOpenLaporanUserAccess = hasLegacyLaporanAccess ||
+              _hasAccess(
+                value,
+                menu: "LAPORAN",
+                submenu: "LIST USER ACCESS",
+              );
+          final canOpenLaporanAkunIbpr = hasLegacyLaporanAccess ||
+              _hasAccess(
+                value,
+                menu: "LAPORAN",
+                submenu: "LIST AKUN IBPR",
+              );
+          final canOpenLaporanTransaksi = hasLegacyLaporanAccess ||
+              _hasAccess(
+                value,
+                menu: "LAPORAN",
+                submenu: "TRANSAKSI",
+              );
+          final hasAnyLaporanAccess = canOpenLaporanUserAccess || canOpenLaporanAkunIbpr || canOpenLaporanTransaksi;
 
           return AutoLogoutWrapper(
             idleDuration: Pref.idleDuration,
@@ -442,73 +511,61 @@ class MenuPage extends StatelessWidget {
                                       )
                                     : const SizedBox(),
 
-                                // KANTOR
-                                _hasAccess(
-                                  value,
-                                  menu: "SETUP",
-                                  submenu: "KANTOR",
-                                )
-                                    ? _sidebarItem(
-                                        title: "Kantor",
-                                        icon: ImageAssets.kantor,
-                                        isActive: value.page == 3,
-                                        onTap: () => value.gantipage(3),
-                                      )
-                                    : const SizedBox(),
-
-                                // USER ACCESS
-                                _hasAccess(
-                                  value,
-                                  menu: "SETUP",
-                                  submenu: "USER ACCESS",
-                                )
-                                    ? _sidebarItem(
-                                        title: "User Access",
-                                        icon: ImageAssets.user,
-                                        isActive: value.page == 1,
-                                        onTap: () => value.gantipage(1),
-                                      )
-                                    : const SizedBox(),
-
-                                // ACCOUNT TYPE
-                                _hasAccess(
-                                  value,
-                                  menu: "SETUP",
-                                  submenu: "ACCOUNT TYPE",
-                                )
-                                    ? _sidebarItem(
-                                        title: "Account Type",
-                                        icon: ImageAssets.user,
-                                        isActive: value.page == 5,
-                                        onTap: () => value.gantipage(5),
-                                      )
-                                    : const SizedBox(),
-
-                                // SETUP LIMIT
-                                _hasAccess(
-                                  value,
-                                  menu: "SETUP",
-                                  submenu: "SETUP LIMIT",
-                                )
-                                    ? _sidebarItem(
-                                        title: "Setup Limit",
-                                        icon: ImageAssets.user,
-                                        isActive: value.page == 6,
-                                        onTap: () => value.gantipage(6),
-                                      )
-                                    : const SizedBox(),
-
-                                // SETUP JOURNAL TRANSAKSI
-                                _hasAccess(
-                                  value,
-                                  menu: "SETUP",
-                                  submenu: "SETUP LIMIT",
-                                )
-                                    ? _sidebarItem(
-                                        title: "Setup Journal Transaksi",
-                                        icon: ImageAssets.user,
-                                        isActive: value.page == 18,
-                                        onTap: () => value.gantipage(18),
+                                // SETUP
+                                hasAnySetupAccess
+                                    ? ExpansionTile(
+                                        initiallyExpanded: isSetupActive,
+                                        tilePadding: EdgeInsets.zero,
+                                        childrenPadding: EdgeInsets.zero,
+                                        iconColor: Colors.white,
+                                        collapsedIconColor: Colors.white,
+                                        title: _sidebarExpansionTitle(
+                                          title: "SETUP",
+                                          icon: ImageAssets.kantor,
+                                          isActive: isSetupActive,
+                                        ),
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                                            children: [
+                                              canOpenKantor
+                                                  ? _sidebarSubItem(
+                                                      title: "Kantor",
+                                                      isActive: value.page == 3,
+                                                      onTap: () => value.gantipage(3),
+                                                    )
+                                                  : const SizedBox(),
+                                              canOpenUserAccess
+                                                  ? _sidebarSubItem(
+                                                      title: "User Access",
+                                                      isActive: value.page == 1,
+                                                      onTap: () => value.gantipage(1),
+                                                    )
+                                                  : const SizedBox(),
+                                              canOpenAccountType
+                                                  ? _sidebarSubItem(
+                                                      title: "Account Type",
+                                                      isActive: value.page == 5,
+                                                      onTap: () => value.gantipage(5),
+                                                    )
+                                                  : const SizedBox(),
+                                              canOpenSetupLimit
+                                                  ? _sidebarSubItem(
+                                                      title: "Setup Limit",
+                                                      isActive: value.page == 6,
+                                                      onTap: () => value.gantipage(6),
+                                                    )
+                                                  : const SizedBox(),
+                                              canOpenSetupJournalTransaksi
+                                                  ? _sidebarSubItem(
+                                                      title: "Setup Journal Transaksi",
+                                                      isActive: value.page == 18,
+                                                      onTap: () => value.gantipage(18),
+                                                    )
+                                                  : const SizedBox(),
+                                            ],
+                                          )
+                                        ],
                                       )
                                     : const SizedBox(),
 
@@ -705,12 +762,7 @@ class MenuPage extends StatelessWidget {
                                     : const SizedBox(),
 
                                 // LAPORAN
-                                _hasAccess(
-                                  value,
-                                  menu: "LAPORAN",
-                                  submenu: "LAPORAN HARIAN",
-                                  subsubmenu: "LAPORAN HARIAN",
-                                )
+                                hasAnyLaporanAccess
                                     ? ExpansionTile(
                                         initiallyExpanded: isLaporanActive,
                                         tilePadding: EdgeInsets.zero,
@@ -723,11 +775,27 @@ class MenuPage extends StatelessWidget {
                                           isActive: isLaporanActive,
                                         ),
                                         children: [
-                                          _sidebarSubItem(
-                                            title: "Laporan Harian",
-                                            isActive: isLaporanActive,
-                                            onTap: () => value.gantipage(19),
-                                          )
+                                          canOpenLaporanUserAccess
+                                              ? _sidebarSubItem(
+                                                  title: "List User Access",
+                                                  isActive: value.page == 19,
+                                                  onTap: () => value.gantipage(19),
+                                                )
+                                              : const SizedBox(),
+                                          canOpenLaporanAkunIbpr
+                                              ? _sidebarSubItem(
+                                                  title: "List Akun IBPR",
+                                                  isActive: value.page == 20,
+                                                  onTap: () => value.gantipage(20),
+                                                )
+                                              : const SizedBox(),
+                                          canOpenLaporanTransaksi
+                                              ? _sidebarSubItem(
+                                                  title: "Transaksi",
+                                                  isActive: value.page == 21,
+                                                  onTap: () => value.gantipage(21),
+                                                )
+                                              : const SizedBox(),
                                         ],
                                       )
                                     : const SizedBox(),
