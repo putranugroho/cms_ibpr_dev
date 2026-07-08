@@ -423,4 +423,120 @@ class UsersAccessNotifier extends ChangeNotifier {
       }
     });
   }
+
+  Future<bool> _confirmAction({
+    required String title,
+    required String message,
+    required String confirmText,
+    Color confirmColor = Colors.blue,
+  }) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Batal"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              confirmText,
+              style: TextStyle(color: confirmColor),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return confirm == true;
+  }
+
+  Future<void> forceLogoutSelectedUser() async {
+    if (usersAccessModel == null) {
+      informationDialog(context, "Informasi", "Pilih user terlebih dahulu");
+      return;
+    }
+
+    final targetUserId = (usersAccessModel?.userid ?? username.text).trim();
+    if (targetUserId.isEmpty) {
+      informationDialog(context, "Informasi", "User ID tidak valid");
+      return;
+    }
+
+    final confirm = await _confirmAction(
+      title: "Konfirmasi",
+      message: "Paksa logout user $targetUserId?",
+      confirmText: "Logout",
+      confirmColor: Colors.orange,
+    );
+
+    if (!confirm) return;
+
+    Navigator.pop(context);
+    DialogCustom().showLoading(context);
+
+    UsersAccessRepository.forceLogoutUser(
+      NetworkURL.logout(),
+      users!.bprId,
+      users!.usersId,
+      targetUserId,
+    ).then((value) {
+      Navigator.pop(context);
+
+      if (value['value'] == 1) {
+        getUsersAccess();
+      }
+
+      informationDialog(context, "Informasi", value['message']);
+    }).catchError((e) {
+      Navigator.pop(context);
+      informationDialog(context, "Informasi", e.toString());
+    });
+  }
+
+  Future<void> unblockSelectedUser() async {
+    if (usersAccessModel == null) {
+      informationDialog(context, "Informasi", "Pilih user terlebih dahulu");
+      return;
+    }
+
+    final targetUserId = (usersAccessModel?.userid ?? username.text).trim();
+    if (targetUserId.isEmpty) {
+      informationDialog(context, "Informasi", "User ID tidak valid");
+      return;
+    }
+
+    final confirm = await _confirmAction(
+      title: "Konfirmasi",
+      message: "Buka blokir user $targetUserId?",
+      confirmText: "Buka Blokir",
+      confirmColor: Colors.green,
+    );
+
+    if (!confirm) return;
+
+    Navigator.pop(context);
+    DialogCustom().showLoading(context);
+
+    UsersAccessRepository.unblockUserId(
+      NetworkURL.unblokirUserId(),
+      users!.bprId,
+      users!.usersId,
+      targetUserId,
+    ).then((value) {
+      Navigator.pop(context);
+
+      if (value['value'] == 1) {
+        getUsersAccess();
+      }
+
+      informationDialog(context, "Informasi", value['message']);
+    }).catchError((e) {
+      Navigator.pop(context);
+      informationDialog(context, "Informasi", e.toString());
+    });
+  }
 }

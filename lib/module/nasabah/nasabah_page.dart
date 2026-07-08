@@ -402,17 +402,33 @@ class NasabahPage extends StatelessWidget {
                                                 color: Colors.grey,
                                               ),
                                             ),
-                                            child: value.editData && value.nasabahModel != null
+                                            child: value.currentKtpPhotoPath.trim().isNotEmpty
                                                 ? Transform.flip(
                                                     flipX: true,
                                                     child: Image.network(
-                                                      NetworkURL.photoView(
-                                                        type: "ktp",
-                                                        fileOrPath: value.nasabahModel!.fhoto1 ?? "",
+                                                      value.currentKtpPhotoUrl,
+                                                      key: ValueKey(
+                                                        "ktp-${value.currentKtpPhotoPath}-${value.photoBridgeVersion}",
                                                       ),
                                                       fit: BoxFit.cover,
                                                       width: 400,
                                                       height: 220,
+                                                      errorBuilder: (context, error, stackTrace) {
+                                                        return const Column(
+                                                          mainAxisAlignment: MainAxisAlignment.center,
+                                                          children: [
+                                                            Icon(
+                                                              Icons.broken_image,
+                                                              size: 50,
+                                                            ),
+                                                            SizedBox(height: 16),
+                                                            Text(
+                                                              "Foto KTP tidak dapat ditampilkan",
+                                                              textAlign: TextAlign.center,
+                                                            ),
+                                                          ],
+                                                        );
+                                                      },
                                                     ),
                                                   )
                                                 : const Column(
@@ -517,17 +533,33 @@ class NasabahPage extends StatelessWidget {
                                               color: Colors.grey,
                                             ),
                                           ),
-                                          child: value.editData
+                                          child: value.currentSelfiePhotoPath.trim().isNotEmpty
                                               ? Transform.flip(
                                                   flipX: true,
                                                   child: Image.network(
-                                                    NetworkURL.photoView(
-                                                      type: "selfie",
-                                                      fileOrPath: value.nasabahModel!.fhoto2 ?? "",
+                                                    value.currentSelfiePhotoUrl,
+                                                    key: ValueKey(
+                                                      "selfie-${value.currentSelfiePhotoPath}-${value.photoBridgeVersion}",
                                                     ),
                                                     fit: BoxFit.cover,
                                                     width: 250,
                                                     height: 400,
+                                                    errorBuilder: (context, error, stackTrace) {
+                                                      return const Column(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: [
+                                                          Icon(
+                                                            Icons.broken_image,
+                                                            size: 50,
+                                                          ),
+                                                          SizedBox(height: 16),
+                                                          Text(
+                                                            "Foto Selfie tidak dapat ditampilkan",
+                                                            textAlign: TextAlign.center,
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
                                                   ),
                                                 )
                                               : const Column(

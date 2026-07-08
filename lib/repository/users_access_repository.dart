@@ -282,6 +282,78 @@ class UsersAccessRepository {
     };
   }
 
+  static Future<dynamic> forceLogoutUser(
+    String url,
+    String bprId,
+    String userlogin,
+    String userid,
+  ) async {
+    final Map<String, dynamic> json = {
+      "bpr_id": bprId,
+      "userlogin": _normalizeUpper(userlogin),
+      "userid": _normalizeUpper(userid),
+      "stsaktif": "N",
+    };
+
+    Dio dio = _dio();
+
+    if (kDebugMode) {
+      print("ENDPOINT URL FORCE LOGOUT USER : $url");
+      print("REQUEST FORCE LOGOUT USER : $json");
+    }
+
+    final response = await dio.post(url, data: json);
+    final decoded = _safeDecode(response.data);
+
+    if (kDebugMode) {
+      print("RESPONSE STATUS CODE FORCE LOGOUT USER : ${response.statusCode}");
+      print("RESPONSE DATA FORCE LOGOUT USER : $decoded");
+    }
+
+    return {
+      "value": _mapValueFromGo(decoded),
+      "message": _mapMessageFromGo(decoded),
+      "data": decoded['data'],
+      "raw": decoded,
+    };
+  }
+
+  static Future<dynamic> unblockUserId(
+    String url,
+    String bprId,
+    String userlogin,
+    String userid,
+  ) async {
+    final Map<String, dynamic> json = {
+      "bpr_id": bprId,
+      "userlogin": _normalizeUpper(userlogin),
+      "userid": _normalizeUpper(userid),
+      "term": "WEB",
+    };
+
+    Dio dio = _dio();
+
+    if (kDebugMode) {
+      print("ENDPOINT URL UNBLOCK USER ID : $url");
+      print("REQUEST UNBLOCK USER ID : $json");
+    }
+
+    final response = await dio.post(url, data: json);
+    final decoded = _safeDecode(response.data);
+
+    if (kDebugMode) {
+      print("RESPONSE STATUS CODE UNBLOCK USER ID : ${response.statusCode}");
+      print("RESPONSE DATA UNBLOCK USER ID : $decoded");
+    }
+
+    return {
+      "value": _mapValueFromGo(decoded),
+      "message": _mapMessageFromGo(decoded),
+      "data": decoded['data'],
+      "raw": decoded,
+    };
+  }
+
   static Future<dynamic> deleteUsersId(
     String token,
     String url,

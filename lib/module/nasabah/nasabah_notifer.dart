@@ -38,6 +38,11 @@ class NasabahNotifier extends ChangeNotifier {
   String? acctTypeError;
   String? rekeningError;
 
+  String noCif = "";
+  String bridgeKtpPath = "";
+  String bridgeSelfiePath = "";
+  int photoBridgeVersion = 0;
+
   getProfile() async {
     Pref().getUsers().then((value) {
       users = value;
@@ -251,6 +256,9 @@ class NasabahNotifier extends ChangeNotifier {
     genderError = null;
     acctTypeError = null;
     rekeningError = null;
+    noCif = "";
+    bridgeKtpPath = "";
+    bridgeSelfiePath = "";
     tglLahir.clear();
     noHp.clear();
     namarek.clear();
@@ -335,6 +343,240 @@ class NasabahNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
+  String _stringValue(dynamic value) {
+    if (value == null) return "";
+    return value.toString().trim();
+  }
+
+  String _extractNoCif(dynamic data) {
+    final keys = [
+      'no_cif',
+      'nocif',
+      'noCif',
+      'NO_CIF',
+      'NO CIF',
+      'cif',
+      'CIF',
+    ];
+
+    if (data is Map) {
+      for (final key in keys) {
+        final value = data[key];
+        final text = _stringValue(value);
+        if (text.isNotEmpty) return text;
+      }
+
+      for (final value in data.values) {
+        final found = _extractNoCif(value);
+        if (found.isNotEmpty) return found;
+      }
+    }
+
+    if (data is List) {
+      for (final item in data) {
+        final found = _extractNoCif(item);
+        if (found.isNotEmpty) return found;
+      }
+    }
+
+    return "";
+  }
+
+  String _noCifFromModel() {
+    try {
+      return _stringValue((nasabahModel as dynamic).noCif);
+    } catch (_) {
+      return "";
+    }
+  }
+
+  String get currentKtpPhotoPath {
+    final bridgePath = bridgeKtpPath.trim();
+    if (bridgePath.isNotEmpty) return bridgePath;
+
+    return (nasabahModel?.fhoto1 ?? "").toString().trim();
+  }
+
+  String get currentSelfiePhotoPath {
+    final bridgePath = bridgeSelfiePath.trim();
+    if (bridgePath.isNotEmpty) return bridgePath;
+
+    return (nasabahModel?.fhoto2 ?? "").toString().trim();
+  }
+
+  bool get hasCurrentKtpPhoto => currentKtpPhotoPath.trim().isNotEmpty;
+
+  bool get hasCurrentSelfiePhoto => currentSelfiePhotoPath.trim().isNotEmpty;
+
+  bool get hasCurrentPhotoPair => hasCurrentKtpPhoto && hasCurrentSelfiePhoto;
+
+  String _withCacheBuster(String url) {
+    if (url.trim().isEmpty) return url;
+
+    final separator = url.contains("?") ? "&" : "?";
+    return "$url${separator}v=$photoBridgeVersion";
+  }
+
+  String get currentKtpPhotoUrl {
+    final path = currentKtpPhotoPath.trim();
+    if (path.isEmpty) return "";
+
+    return _withCacheBuster(
+      NetworkURL.photoView(
+        type: "ktp",
+        fileOrPath: path,
+      ),
+    );
+  }
+
+  String get currentSelfiePhotoUrl {
+    final path = currentSelfiePhotoPath.trim();
+    if (path.isEmpty) return "";
+
+    return _withCacheBuster(
+      NetworkURL.photoView(
+        type: "selfie",
+        fileOrPath: path,
+      ),
+    );
+  }
+
+  Future<void> loadNasabahPhotoBridge({
+    String? forceNoCif,
+  }) async {
+    final selectedNoCif = (forceNoCif ?? "").trim().isNotEmpty
+        ? forceNoCif!.trim()
+        : noCif.trim().isNotEmpty
+            ? noCif.trim()
+            : _noCifFromModel();
+
+    debugPrint("[NASABAH][PHOTO_BRIDGE][START] no_cif=$selectedNoCif");
+
+    if (selectedNoCif.isEmpty) {
+      debugPrint("[NASABAH][PHOTO_BRIDGE][SKIP] no_cif kosong");
+      bridgeKtpPath = "";
+      bridgeSelfiePath = "";
+      photoBridgeVersion = DateTime.now().millisecondsSinceEpoch;
+      notifyListeners();
+      return;
+    }
+
+    try {
+      final value = await NasabahRepository.inquiryNasabahPhotoBridge(
+        token,
+        NetworkURL.nasabahPhotoBridge(),
+        users!.bprId,
+        selectedNoCif,
+      );
+
+      debugPrint("[NASABAH][PHOTO_BRIDGE][RESPONSE] $value");
+
+      if (value['value'] == 1 && value['data'] is Map) {
+        final data = Map<String, dynamic>.from(value['data']);
+
+        bridgeKtpPath = (data['foto_ktp_path'] ?? "").toString().trim();
+        bridgeSelfiePath = (data['foto_selfie_path'] ?? "").toString().trim();
+        noCif = selectedNoCif;
+      } else {
+        bridgeKtpPath = "";
+        bridgeSelfiePath = "";
+      }
+    } catch (e) {
+      debugPrint("[NASABAH][PHOTO_BRIDGE][ERROR] $e");
+      bridgeKtpPath = "";
+      bridgeSelfiePath = "";
+    }
+
+    photoBridgeVersion = DateTime.now().millisecondsSinceEpoch;
+
+    debugPrint("[NASABAH][PHOTO_BRIDGE][FINAL_KTP] $bridgeKtpPath");
+    debugPrint("[NASABAH][PHOTO_BRIDGE][FINAL_SELFIE] $bridgeSelfiePath");
+
+    notifyListeners();
+  }
+
+  Future<void> upsertNasabahPhotoBridgeCMS({
+    required String ktpPath,
+    required String selfiePath,
+  }) async {
+    final selectedNoCif = noCif.trim().isNotEmpty ? noCif.trim() : _noCifFromModel();
+
+    if (selectedNoCif.isEmpty) {
+      debugPrint("UPSERT BRIDGE SKIPPED: no_cif kosong");
+      return;
+    }
+
+    try {
+      final value = await NasabahRepository.upsertNasabahPhotoBridgeCMS(
+        token,
+        NetworkURL.nasabahPhotoBridge(),
+        users!.bprId,
+        selectedNoCif,
+        noHp.text.trim(),
+        ktpPath,
+        selfiePath,
+      );
+
+      if (value['value'] == 1 && value['data'] is Map) {
+        final data = Map<String, dynamic>.from(value['data']);
+        bridgeKtpPath = (data['foto_ktp_path'] ?? ktpPath).toString();
+        bridgeSelfiePath = (data['foto_selfie_path'] ?? selfiePath).toString();
+      }
+    } catch (e) {
+      debugPrint("UPSERT BRIDGE ERROR: $e");
+    }
+  }
+
+  Future<String> inquiryNoCifByRekening({
+    required String noRekening,
+    bool fillNamaRekening = false,
+  }) async {
+    final rekening = noRekening.trim();
+
+    if (rekening.isEmpty) {
+      return "";
+    }
+
+    final invoice = DateTime.now().microsecondsSinceEpoch.toString();
+
+    debugPrint("[NASABAH][INQUIRY_REK][START] no_rek=$rekening");
+
+    final value = await NasabahRepository.inqueryRekCMS(
+      token,
+      NetworkURL.inqueryRekCMS(),
+      users!.usersId,
+      users!.bprId,
+      "0200",
+      "TRX",
+      DateFormat('yyMMddHHmmss').format(DateTime.now()),
+      DateFormat('yyMMddHHmmss').format(DateTime.now()),
+      invoice,
+      rekening,
+      "2",
+    );
+
+    debugPrint("[NASABAH][INQUIRY_REK][RESPONSE] $value");
+
+    if (value['value'] != 1) {
+      rekeningError = value['message']?.toString() ?? "Inquiry rekening gagal";
+      return "";
+    }
+
+    final data = value['data'];
+    final selectedNoCif = _extractNoCif(data);
+
+    debugPrint("[NASABAH][INQUIRY_REK][NO_CIF] $selectedNoCif");
+
+    if (fillNamaRekening) {
+      namarek.text = (data?['nama'] ?? data?['nama_rek'] ?? namarek.text).toString();
+    }
+
+    noCif = selectedNoCif;
+    rekeningError = null;
+
+    return selectedNoCif;
+  }
+
   inquery() async {
     if (norek.text.trim().isEmpty) {
       informationDialog(context, "Error", "No. rekening wajib diisi");
@@ -344,38 +586,31 @@ class NasabahNotifier extends ChangeNotifier {
     showSafeLoading();
 
     try {
-      final invoice = DateTime.now().microsecondsSinceEpoch.toString();
+      bridgeKtpPath = "";
+      bridgeSelfiePath = "";
+      noCif = "";
+      rekeningError = null;
+      photoBridgeVersion = DateTime.now().millisecondsSinceEpoch;
+      notifyListeners();
 
-      final value = await NasabahRepository.inqueryRekCMS(
-        token,
-        NetworkURL.inqueryRekCMS(),
-        users!.usersId,
-        users!.bprId,
-        "0200",
-        "TRX",
-        DateFormat('yyMMddHHmmss').format(DateTime.now()),
-        DateFormat('yyMMddHHmmss').format(DateTime.now()),
-        invoice,
-        norek.text.trim(),
-        "2",
+      final selectedNoCif = await inquiryNoCifByRekening(
+        noRekening: norek.text.trim(),
+        fillNamaRekening: true,
       );
 
-      closeSafeLoading();
-
-      if (value['value'] == 1) {
-        final data = value['data'];
-
-        namarek.text = (data?['nama'] ?? data?['nama_rek'] ?? "").toString();
-        rekeningError = null;
-
-        notifyListeners();
-      } else {
+      if (selectedNoCif.isEmpty) {
+        closeSafeLoading();
         informationDialog(
           context,
           "Error",
-          value['message']?.toString() ?? "Inquiry rekening gagal",
+          rekeningError ?? "No CIF tidak ditemukan dari inquiry rekening",
         );
+        return;
       }
+
+      await loadNasabahPhotoBridge(forceNoCif: selectedNoCif);
+
+      closeSafeLoading();
     } catch (e) {
       closeSafeLoading();
       informationDialog(context, "Error", e.toString());
@@ -412,21 +647,36 @@ class NasabahNotifier extends ChangeNotifier {
   cek() async {
     if (keyForm.currentState!.validate()) {
       _isSubmitting = true;
-      if (!editData) {
-        if (image2 == null) {
-          informationDialog(
-            context,
-            "Error",
-            "Foto KTP wajib diisi. Silakan buka kamera dan klik tombol foto terlebih dahulu.",
-          );
-          return;
-        }
 
-        if (image == null) {
+      if (!editData) {
+        final usingExistingBridgePhotos = image == null && image2 == null;
+
+        if (usingExistingBridgePhotos) {
+          if (!hasCurrentKtpPhoto) {
+            _isSubmitting = false;
+            informationDialog(
+              context,
+              "Error",
+              "Foto KTP wajib diisi. Silakan buka kamera atau pastikan foto KTP tersedia di photo bridge.",
+            );
+            return;
+          }
+
+          if (!hasCurrentSelfiePhoto) {
+            _isSubmitting = false;
+            informationDialog(
+              context,
+              "Error",
+              "Foto Selfie KTP wajib diisi. Silakan buka kamera atau pastikan foto selfie tersedia di photo bridge.",
+            );
+            return;
+          }
+        } else if (image == null || image2 == null) {
+          _isSubmitting = false;
           informationDialog(
             context,
             "Error",
-            "Foto Selfie KTP wajib diisi. Silakan buka kamera dan klik tombol foto terlebih dahulu.",
+            "Jika memakai foto baru, Foto KTP dan Selfie KTP harus difoto bersamaan.",
           );
           return;
         }
@@ -441,6 +691,7 @@ class NasabahNotifier extends ChangeNotifier {
         Future<void> submitUpdate({
           required String ktpFile,
           required String selfieFile,
+          bool syncBridge = false,
         }) async {
           NasabahRepository.updateAkunCMS(
             token,
@@ -464,6 +715,13 @@ class NasabahNotifier extends ChangeNotifier {
             closeSafeLoading();
             _isSubmitting = false;
             if (e['value'] == 1) {
+              if (syncBridge) {
+                await upsertNasabahPhotoBridgeCMS(
+                  ktpPath: ktpFile,
+                  selfiePath: selfieFile,
+                );
+              }
+
               await disposeCamera();
               getNasabah();
               resetForm();
@@ -480,13 +738,15 @@ class NasabahNotifier extends ChangeNotifier {
 
         if (!changeSelfie && !changeKtp) {
           await submitUpdate(
-            ktpFile: nasabahModel!.fhoto1.toString(),
-            selfieFile: nasabahModel!.fhoto2.toString(),
+            ktpFile: currentKtpPhotoPath,
+            selfieFile: currentSelfiePhotoPath,
+            syncBridge: false,
           );
           return;
         }
 
         if (changeSelfie != changeKtp) {
+          _isSubmitting = false;
           closeSafeLoading();
           informationDialog(
             context,
@@ -516,12 +776,15 @@ class NasabahNotifier extends ChangeNotifier {
             await submitUpdate(
               ktpFile: (data['ktp_path'] ?? imageKtp).toString(),
               selfieFile: (data['selfie_path'] ?? imageSelfi).toString(),
+              syncBridge: true,
             );
           } else {
+            _isSubmitting = false;
             closeSafeLoading();
             informationDialog(context, "Error", value['message']);
           }
         }).catchError((err) {
+          _isSubmitting = false;
           closeSafeLoading();
           informationDialog(context, "Error", err.toString());
         });
@@ -531,34 +794,13 @@ class NasabahNotifier extends ChangeNotifier {
         await closeFormOnly();
         showSafeLoading();
 
-        if (image == null || image2 == null) {
-          closeSafeLoading();
-          informationDialog(context, "Error", "Foto KTP dan Selfie wajib diisi");
-          _isSubmitting = false;
-          return;
-        }
-
-        final pathSelfie = await image!.readAsBytes();
-        final pathKtp = await image2!.readAsBytes();
-
-        var imageSelfi = "_${DateTime.now().millisecondsSinceEpoch}.jpg";
-        var imageKtp = "${DateTime.now().millisecondsSinceEpoch}__.jpg";
-
-        NasabahRepository.insertGallery(
-          token,
-          NetworkURL.insertGallery(),
-          pathKtp,
-          imageKtp,
-          pathSelfie,
-          imageSelfi,
-        ).then((value) {
-          if (value['value'] == 1) {
-            final data = value['data'];
-
-            final ktpPath = data['ktp_path'];
-            final selfiePath = data['selfie_path'];
-
-            NasabahRepository.insertAkunCMS(
+        Future<void> submitInsert({
+          required String ktpPath,
+          required String selfiePath,
+          bool syncBridge = false,
+        }) async {
+          try {
+            final e = await NasabahRepository.insertAkunCMS(
               token,
               NetworkURL.insertAKunCMS(),
               users!.usersId,
@@ -574,24 +816,92 @@ class NasabahNotifier extends ChangeNotifier {
               nik.text.trim(),
               ktpPath,
               selfiePath,
-            ).then((e) async {
-              closeSafeLoading();
-              _isSubmitting = false;
-              if (e['value'] == 1) {
-                await disposeCamera();
-                getNasabah();
-                resetForm();
-                informationDialog(context, "Informasi", e['message']);
-              } else {
-                informationDialog(context, "Informasi", e['message']);
+            );
+
+            closeSafeLoading();
+            _isSubmitting = false;
+
+            if (e['value'] == 1) {
+              if (syncBridge) {
+                await upsertNasabahPhotoBridgeCMS(
+                  ktpPath: ktpPath,
+                  selfiePath: selfiePath,
+                );
               }
-            });
+
+              await disposeCamera();
+              getNasabah();
+              resetForm();
+              informationDialog(context, "Informasi", e['message']);
+            } else {
+              informationDialog(context, "Informasi", e['message']);
+            }
+          } catch (err) {
+            closeSafeLoading();
+            _isSubmitting = false;
+            informationDialog(context, "Error", err.toString());
+          }
+        }
+
+        final useExistingBridgePhotos = image == null && image2 == null && hasCurrentPhotoPair;
+
+        if (useExistingBridgePhotos) {
+          await submitInsert(
+            ktpPath: currentKtpPhotoPath,
+            selfiePath: currentSelfiePhotoPath,
+            syncBridge: false,
+          );
+          return;
+        }
+
+        if (image == null || image2 == null) {
+          closeSafeLoading();
+          _isSubmitting = false;
+          informationDialog(
+            context,
+            "Error",
+            "Foto KTP dan Selfie wajib diisi. Jika memakai foto baru, keduanya harus difoto bersamaan.",
+          );
+          return;
+        }
+
+        try {
+          final pathSelfie = await image!.readAsBytes();
+          final pathKtp = await image2!.readAsBytes();
+
+          final imageSelfi = "_${DateTime.now().millisecondsSinceEpoch}.jpg";
+          final imageKtp = "${DateTime.now().millisecondsSinceEpoch}__.jpg";
+
+          final value = await NasabahRepository.insertGallery(
+            token,
+            NetworkURL.insertGallery(),
+            pathKtp,
+            imageKtp,
+            pathSelfie,
+            imageSelfi,
+          );
+
+          if (value['value'] == 1) {
+            final data = Map<String, dynamic>.from(value['data'] ?? {});
+
+            final ktpPath = (data['ktp_path'] ?? imageKtp).toString();
+            final selfiePath = (data['selfie_path'] ?? imageSelfi).toString();
+
+            await submitInsert(
+              ktpPath: ktpPath,
+              selfiePath: selfiePath,
+              syncBridge: true,
+            );
           } else {
             closeSafeLoading();
             _isSubmitting = false;
             informationDialog(context, "Error", value['message']);
           }
-        });
+        } catch (err) {
+          closeSafeLoading();
+          _isSubmitting = false;
+          informationDialog(context, "Error", err.toString());
+        }
       }
     }
   }
@@ -725,13 +1035,17 @@ class NasabahNotifier extends ChangeNotifier {
 
   edit() async {
     await disposeCamera();
+
     editData = true;
     key.currentState!.openEndDrawer();
+
     final matchedAcctType = listAccount.where(
       (element) => element.kdAcc == nasabahModel!.acctType,
     );
+
     acctTypeModel = matchedAcctType.isNotEmpty ? matchedAcctType.first : null;
     selectedAcctType = acctTypeModel?.kdAcc ?? nasabahModel!.acctType.toString();
+
     namaLengkap.text = nasabahModel!.nama;
     namarek.text = nasabahModel!.namaRek;
     noHp.text = nasabahModel!.noHp;
@@ -739,13 +1053,52 @@ class NasabahNotifier extends ChangeNotifier {
     norek.text = nasabahModel!.noRek;
     gender = nasabahModel!.gender;
     tglLahir.text = nasabahModel!.tglLahir;
+
+    noCif = "";
+    bridgeKtpPath = "";
+    bridgeSelfiePath = "";
+    photoBridgeVersion = DateTime.now().millisecondsSinceEpoch;
+
     genderError = null;
     acctTypeError = null;
     rekeningError = null;
     currentStep = 0;
     tombolcapture = false;
     tombolcaptureselfie = false;
+
     notifyListeners();
+
+    showSafeLoading();
+
+    try {
+      final selectedNoCif = await inquiryNoCifByRekening(
+        noRekening: nasabahModel!.noRek,
+        fillNamaRekening: false,
+      );
+
+      if (selectedNoCif.isNotEmpty) {
+        await loadNasabahPhotoBridge(forceNoCif: selectedNoCif);
+      } else {
+        noCif = _noCifFromModel();
+
+        debugPrint(
+          "[NASABAH][EDIT][NO_CIF_FALLBACK_FROM_MODEL] $noCif",
+        );
+
+        await loadNasabahPhotoBridge(forceNoCif: noCif);
+      }
+
+      closeSafeLoading();
+    } catch (e) {
+      closeSafeLoading();
+
+      noCif = _noCifFromModel();
+
+      debugPrint("[NASABAH][EDIT][INQUIRY_REK_ERROR] $e");
+      debugPrint("[NASABAH][EDIT][NO_CIF_FALLBACK_FROM_MODEL] $noCif");
+
+      await loadNasabahPhotoBridge(forceNoCif: noCif);
+    }
   }
 
   confirm() {
@@ -840,7 +1193,7 @@ class NasabahNotifier extends ChangeNotifier {
   int currentStep = 0;
 
   bool validateFotoKtpStep() {
-    if (!editData && image2 == null) {
+    if (image2 == null && !hasCurrentKtpPhoto) {
       informationDialog(context, "Error", "Foto KTP wajib diisi");
       return false;
     }
@@ -848,7 +1201,7 @@ class NasabahNotifier extends ChangeNotifier {
   }
 
   bool validateFotoSelfieStep() {
-    if (!editData && image == null) {
+    if (image == null && !hasCurrentSelfiePhoto) {
       informationDialog(context, "Error", "Foto Selfie KTP wajib diisi");
       return false;
     }
@@ -900,6 +1253,9 @@ class NasabahNotifier extends ChangeNotifier {
     gender = null;
     editData = false;
     switchFoto = false;
+    noCif = "";
+    bridgeKtpPath = "";
+    bridgeSelfiePath = "";
 
     tglLahir.clear();
     noHp.clear();

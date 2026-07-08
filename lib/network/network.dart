@@ -111,6 +111,14 @@ class NetworkURL {
     return "$url_go/photo/upload";
   }
 
+  static String uploadCollmePhoto() {
+    return "$url_go/photo/upload-collme";
+  }
+
+  static String nasabahPhotoBridge() {
+    return "$url_go/nasabah-photo-bridge";
+  }
+
   static String photoView({
     required String type,
     required String? fileOrPath,
@@ -202,6 +210,10 @@ class NetworkURL {
 
   static String logout() {
     return "$url_go/logout";
+  }
+
+  static String unblokirUserId() {
+    return "$url_go/userid/unblokir";
   }
 
   static String updateFotoNasabahCollme() {

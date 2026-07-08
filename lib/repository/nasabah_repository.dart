@@ -471,4 +471,65 @@ class NasabahRepository {
 
     return _mapGoResponse(response.data);
   }
+
+  static Future<dynamic> inquiryNasabahPhotoBridge(
+    String token,
+    String url,
+    String bprId,
+    String noCif,
+  ) async {
+    Map<String, dynamic> json = {
+      "action": "inquiry",
+      "bpr_id": bprId,
+      "no_cif": noCif,
+    };
+
+    if (kDebugMode) {
+      print("REQUEST INQUIRY NASABAH PHOTO BRIDGE : ${jsonEncode(json)}");
+      print("ENDPOINT URL : $url");
+    }
+
+    final response = await _dio().post(url, data: json);
+
+    if (kDebugMode) {
+      print("RESPONSE STATUS CODE BRIDGE : ${response.statusCode}");
+      print("RESPONSE DATA BRIDGE : ${response.data}");
+    }
+
+    return _mapGoResponse(response.data);
+  }
+
+  static Future<dynamic> upsertNasabahPhotoBridgeCMS(
+    String token,
+    String url,
+    String bprId,
+    String noCif,
+    String noHp,
+    String fotoKtpPath,
+    String fotoSelfiePath,
+  ) async {
+    Map<String, dynamic> json = {
+      "action": "upsert",
+      "source": "cms",
+      "bpr_id": bprId,
+      "no_cif": noCif,
+      "no_hp": noHp,
+      "foto_ktp_path": fotoKtpPath,
+      "foto_selfie_path": fotoSelfiePath,
+    };
+
+    if (kDebugMode) {
+      print("REQUEST UPSERT NASABAH PHOTO BRIDGE CMS : ${jsonEncode(json)}");
+      print("ENDPOINT URL : $url");
+    }
+
+    final response = await _dio().post(url, data: json);
+
+    if (kDebugMode) {
+      print("RESPONSE STATUS CODE BRIDGE : ${response.statusCode}");
+      print("RESPONSE DATA BRIDGE : ${response.data}");
+    }
+
+    return _mapGoResponse(response.data);
+  }
 }

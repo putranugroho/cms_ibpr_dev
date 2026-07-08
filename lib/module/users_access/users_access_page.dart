@@ -224,43 +224,58 @@ class UsersAccessPage extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        if (value.editData) ...[
-                          Expanded(
-                            child: InkWell(
-                              onTap: () {
-                                value.hapusUsersAccess();
-                              },
-                              child: Container(
-                                height: 46,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
+                    value.editData
+                        ? Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: [
+                              SizedBox(
+                                width: 120,
+                                child: _UserActionButton(
+                                  label: "Hapus",
                                   color: Colors.red,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  "Hapus",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  onTap: () {
+                                    value.hapusUsersAccess();
+                                  },
                                 ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                        ],
-                        Expanded(
-                          child: ButtonPrimary(
+                              SizedBox(
+                                width: 120,
+                                child: _UserActionButton(
+                                  label: "Logout",
+                                  color: Colors.orange,
+                                  onTap: () {
+                                    value.forceLogoutSelectedUser();
+                                  },
+                                ),
+                              ),
+                              SizedBox(
+                                width: 140,
+                                child: _UserActionButton(
+                                  label: "Buka Blokir",
+                                  color: Colors.green,
+                                  onTap: () {
+                                    value.unblockSelectedUser();
+                                  },
+                                ),
+                              ),
+                              SizedBox(
+                                width: 120,
+                                child: ButtonPrimary(
+                                  onTap: () {
+                                    value.cek();
+                                  },
+                                  name: "Update",
+                                ),
+                              ),
+                            ],
+                          )
+                        : ButtonPrimary(
                             onTap: () {
                               value.cek();
                             },
-                            name: value.editData ? "Update" : "Simpan",
-                          ),
-                        ),
-                      ],
-                    )
+                            name: "Simpan",
+                          )
                   ],
                 ),
               ),
@@ -454,6 +469,44 @@ class UsersAccessPage extends StatelessWidget {
                 )
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _UserActionButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _UserActionButton({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        height: 52,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
