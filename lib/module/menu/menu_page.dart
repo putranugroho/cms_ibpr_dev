@@ -358,7 +358,7 @@ class MenuPage extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 const Text(
-                                  "last update 08/08/26 01:45",
+                                  "last update 01/09/26 23:00",
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.white,
