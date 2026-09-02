@@ -27,255 +27,348 @@ class UsersAccessPage extends StatelessWidget {
                 child: ListView(
                   padding: EdgeInsets.all(20),
                   children: [
-                    const Text(
-                      "Kantor ",
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    const SizedBox(height: 4),
-                    DropdownButton(
-                      isExpanded: true,
-                      value: value.kantorModel,
-                      items: value.listKantor
-                          .map(
-                            (e) => DropdownMenuItem(
-                              value: e,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                                child: Text(
-                                  "(${e.bpr_id} - ${e.kdKantor}) ${e.namaKantor}",
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
+                    if (!value.editData && !value.employeeVerified) ...[
+                      const Text(
+                        "Inquiry Employee HRIS",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        "Cari dan pilih employee yang sudah terdaftar di HRIS sebelum membuat User Access.",
+                      ),
+                      const SizedBox(height: 20),
+                      TextField(
+                        controller: value.employeeSearch,
+                        textInputAction: TextInputAction.search,
+                        onSubmitted: (_) => value.inquiryEmployee(),
+                        decoration: InputDecoration(
+                          labelText: "Nama / No. Employee / NIK / Telepon",
+                          suffixIcon: IconButton(
+                            tooltip: "Cari employee",
+                            onPressed: value.isSearchingEmployee ? null : value.inquiryEmployee,
+                            icon: const Icon(Icons.search),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      if (value.isSearchingEmployee) const LinearProgressIndicator(),
+                      if (value.employeeSearchError != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          value.employeeSearchError!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      ...value.employeeResults.map(
+                        (employee) => Card(
+                          child: ListTile(
+                            title: Text(employee.name),
+                            subtitle: Text(
+                              "${employee.employeeNo.isEmpty ? '-' : employee.employeeNo} • "
+                              "${employee.officeName.isEmpty ? '-' : employee.officeName}\n"
+                              "Status: ${employee.employeeStatus.isEmpty ? '-' : employee.employeeStatus}",
                             ),
-                          )
-                          .toList(),
-                      onChanged: (e) {
-                        value.pilihKantor(e!);
-                      },
-                    ),
-                    if (value.kantorError != null) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        value.kantorError!,
-                        style: const TextStyle(
-                          color: Colors.red,
-                          fontSize: 12,
+                            isThreeLine: true,
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => value.selectEmployee(employee),
+                          ),
                         ),
                       ),
-                    ],
-                    if (value.kantorError != null) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        value.kantorError!,
-                        style: const TextStyle(
-                          color: Colors.red,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 16),
-                    const Text(
-                      "Nama Users ",
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    const SizedBox(height: 4),
-                    TextFormField(
-                      controller: value.namaUsers,
-                      validator: (e) {
-                        final text = (e ?? '').trim();
-                        if (text.isEmpty) {
-                          return "Nama users wajib diisi";
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      "User ID ",
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    const SizedBox(height: 4),
-                    TextFormField(
-                      controller: value.username,
-                      validator: (e) {
-                        final text = (e ?? '').trim();
-                        if (text.isEmpty) {
-                          return "User ID wajib diisi";
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      "Password ",
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    const SizedBox(height: 4),
-                    TextFormField(
-                      obscureText: value.obscure,
-                      controller: value.password,
-                      decoration: InputDecoration(
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            value.gantiobscure();
-                          },
-                          icon: value.obscure ? const Icon(Icons.visibility) : const Icon(Icons.visibility_off),
-                        ),
-                      ),
-                      validator: (e) {
-                        final text = (e ?? '').trim();
-                        if (text.isEmpty) {
-                          return "Password wajib diisi";
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      "Tanggal Kadaluarsa ",
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    const SizedBox(height: 4),
-                    TextFormField(
-                      controller: value.tglKadaluarsa,
-                      readOnly: true,
-                      onTap: () => value.gantiTanggal(),
-                      decoration: const InputDecoration(
-                        suffixIcon: Icon(Icons.calendar_month),
-                      ),
-                      validator: (e) {
-                        final text = (e ?? '').trim();
-                        if (text.isEmpty) {
-                          return "Tanggal kadaluarsa wajib diisi";
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      "Fasilitas",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    value.listFasilitas.isNotEmpty
-                        ? ListView.builder(
-                            itemCount: value.listFasilitas.length,
-                            shrinkWrap: true,
-                            physics: const ClampingScrollPhysics(),
-                            itemBuilder: (context, i) {
-                              final data = value.listFasilitas[i];
-
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Row(
+                    ] else ...[
+                      if (!value.editData && value.selectedEmployee != null) ...[
+                        Card(
+                          color: colorPrimary.withOpacity(0.08),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.badge_outlined),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Checkbox(
-                                        activeColor: colorPrimary,
-                                        value: value.listAddFasilitas.isEmpty
-                                            ? false
-                                            : value.listAddFasilitas.any(
-                                                (element) =>
-                                                    (element.modul ?? "") == (data.modul ?? "") &&
-                                                    (element.menu ?? "") == (data.menu ?? "") &&
-                                                    (element.submenu ?? "") == (data.submenu ?? "") &&
-                                                    (element.urut ?? "") == (data.urut ?? ""),
-                                              ),
-                                        onChanged: (e) {
-                                          value.addFasilitas(data);
-                                        },
+                                      Text(
+                                        value.selectedEmployee!.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                      SizedBox(
-                                        width: 120,
-                                        child: Text("${data.menu}"),
-                                      ),
-                                      Expanded(
-                                        child: Text("${data.submenu}"),
-                                      ),
-                                      SizedBox(
-                                        width: 120,
-                                        child: Text("${data.menu}"),
-                                      ),
-                                      Expanded(
-                                        child: Text("${data.subsubmenu}"),
+                                      Text(
+                                        "${value.selectedEmployee!.employeeNo} • ${value.selectedEmployee!.officeName}",
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
-                                ],
-                              );
+                                ),
+                                TextButton(
+                                  onPressed: value.changeEmployee,
+                                  child: const Text("Ganti"),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      const Text(
+                        "Kantor ",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      DropdownButton<KantorModel>(
+                        isExpanded: true,
+                        value: value.kantorModel,
+                        items: value.listKantor
+                            .map(
+                              (e) => DropdownMenuItem<KantorModel>(
+                                value: e,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
+                                  child: Text(
+                                    "(${e.bpr_id} - ${e.kdKantor}) ${e.namaKantor}",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: value.editData
+                            ? (KantorModel? e) {
+                                if (e != null) {
+                                  value.pilihKantor(e);
+                                }
+                              }
+                            : null,
+                      ),
+                      if (value.kantorError != null) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          value.kantorError!,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      const Text(
+                        "Nama Users ",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      TextFormField(
+                        controller: value.namaUsers,
+                        readOnly: !value.editData,
+                        validator: (e) {
+                          final text = (e ?? '').trim();
+                          if (text.isEmpty) {
+                            return "Nama users wajib diisi";
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        "User ID ",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      TextFormField(
+                        controller: value.username,
+                        validator: (e) {
+                          final text = (e ?? '').trim();
+                          if (text.isEmpty) {
+                            return "User ID wajib diisi";
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        "Password ",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      TextFormField(
+                        obscureText: value.obscure,
+                        controller: value.password,
+                        decoration: InputDecoration(
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              value.gantiobscure();
                             },
-                          )
-                        : Container(),
-                    if (value.fasilitasError != null) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        value.fasilitasError!,
-                        style: const TextStyle(
-                          color: Colors.red,
+                            icon: value.obscure ? const Icon(Icons.visibility) : const Icon(Icons.visibility_off),
+                          ),
+                        ),
+                        validator: (e) {
+                          final text = (e ?? '').trim();
+                          if (text.isEmpty) {
+                            return "Password wajib diisi";
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        "Tanggal Kadaluarsa ",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      TextFormField(
+                        controller: value.tglKadaluarsa,
+                        readOnly: true,
+                        onTap: () => value.gantiTanggal(),
+                        decoration: const InputDecoration(
+                          suffixIcon: Icon(Icons.calendar_month),
+                        ),
+                        validator: (e) {
+                          final text = (e ?? '').trim();
+                          if (text.isEmpty) {
+                            return "Tanggal kadaluarsa wajib diisi";
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        "Fasilitas",
+                        style: TextStyle(
                           fontSize: 12,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
+                      const SizedBox(height: 4),
+                      value.listFasilitas.isNotEmpty
+                          ? ListView.builder(
+                              itemCount: value.listFasilitas.length,
+                              shrinkWrap: true,
+                              physics: const ClampingScrollPhysics(),
+                              itemBuilder: (context, i) {
+                                final data = value.listFasilitas[i];
+
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Checkbox(
+                                          activeColor: colorPrimary,
+                                          value: value.listAddFasilitas.isEmpty
+                                              ? false
+                                              : value.listAddFasilitas.any(
+                                                  (element) =>
+                                                      (element.modul ?? "") == (data.modul ?? "") &&
+                                                      (element.menu ?? "") == (data.menu ?? "") &&
+                                                      (element.submenu ?? "") == (data.submenu ?? "") &&
+                                                      (element.urut ?? "") == (data.urut ?? ""),
+                                                ),
+                                          onChanged: (e) {
+                                            value.addFasilitas(data);
+                                          },
+                                        ),
+                                        SizedBox(
+                                          width: 120,
+                                          child: Text("${data.menu}"),
+                                        ),
+                                        Expanded(
+                                          child: Text("${data.submenu}"),
+                                        ),
+                                        SizedBox(
+                                          width: 120,
+                                          child: Text("${data.menu}"),
+                                        ),
+                                        Expanded(
+                                          child: Text("${data.subsubmenu}"),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                  ],
+                                );
+                              },
+                            )
+                          : Container(),
+                      if (value.fasilitasError != null) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          value.fasilitasError!,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      value.editData
+                          ? Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: [
+                                SizedBox(
+                                  width: 120,
+                                  child: _UserActionButton(
+                                    label: "Hapus",
+                                    color: Colors.red,
+                                    onTap: () {
+                                      value.hapusUsersAccess();
+                                    },
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 120,
+                                  child: _UserActionButton(
+                                    label: "Logout",
+                                    color: Colors.orange,
+                                    onTap: () {
+                                      value.forceLogoutSelectedUser();
+                                    },
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 140,
+                                  child: _UserActionButton(
+                                    label: "Buka Blokir",
+                                    color: Colors.green,
+                                    onTap: () {
+                                      value.unblockSelectedUser();
+                                    },
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 140,
+                                  child: _UserActionButton(
+                                    label: "Reset Device",
+                                    color: Colors.blue,
+                                    onTap: () {
+                                      value.resetDeviceSelectedUser();
+                                    },
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 120,
+                                  child: ButtonPrimary(
+                                    onTap: () {
+                                      value.cek();
+                                    },
+                                    name: "Update",
+                                  ),
+                                ),
+                              ],
+                            )
+                          : ButtonPrimary(
+                              onTap: () {
+                                value.cek();
+                              },
+                              name: "Simpan",
+                            ),
                     ],
-                    const SizedBox(height: 16),
-                    value.editData
-                        ? Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: [
-                              SizedBox(
-                                width: 120,
-                                child: _UserActionButton(
-                                  label: "Hapus",
-                                  color: Colors.red,
-                                  onTap: () {
-                                    value.hapusUsersAccess();
-                                  },
-                                ),
-                              ),
-                              SizedBox(
-                                width: 120,
-                                child: _UserActionButton(
-                                  label: "Logout",
-                                  color: Colors.orange,
-                                  onTap: () {
-                                    value.forceLogoutSelectedUser();
-                                  },
-                                ),
-                              ),
-                              SizedBox(
-                                width: 140,
-                                child: _UserActionButton(
-                                  label: "Buka Blokir",
-                                  color: Colors.green,
-                                  onTap: () {
-                                    value.unblockSelectedUser();
-                                  },
-                                ),
-                              ),
-                              SizedBox(
-                                width: 120,
-                                child: ButtonPrimary(
-                                  onTap: () {
-                                    value.cek();
-                                  },
-                                  name: "Update",
-                                ),
-                              ),
-                            ],
-                          )
-                        : ButtonPrimary(
-                            onTap: () {
-                              value.cek();
-                            },
-                            name: "Simpan",
-                          )
                   ],
                 ),
               ),

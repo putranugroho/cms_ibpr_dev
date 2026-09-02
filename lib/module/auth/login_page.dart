@@ -91,7 +91,7 @@ class LoginPage extends StatelessWidget {
                                   height: 16,
                                 ),
                                 Text(
-                                  "last update 08/07/26 16:00",
+                                  "last update 08/08/26 01:45",
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 16,

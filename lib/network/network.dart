@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:core';
 
 const token = "715f8ab555438f985b579844ea227767";
+const apiKey = "123";
 const xusername = "core@2023";
 const xpassword = "corevalue@20231234";
 const url = "https://ibprservices.medtrans.id";
@@ -28,7 +29,11 @@ class NetworkURL {
   }
 
   static String getListKantorAccess() {
-    return "$url_go/kantor";
+    return "$url_go/hrm/inquiry_kantor";
+  }
+
+  static String inquiryEmployeeHRIS() {
+    return "$url_go/hrm/inquiry_employee";
   }
 
   static String getListNasbah() {
@@ -41,18 +46,6 @@ class NetworkURL {
 
   static String generatedMpin() {
     return "$url_go/generate_mpin";
-  }
-
-  static String insertKantorCMS() {
-    return "$url_go/kantor";
-  }
-
-  static String updateKantorCMS() {
-    return "$url_go/kantor";
-  }
-
-  static String deleteKantorCMS() {
-    return "$url_go/kantor";
   }
 
   static String insertUsersId() {
@@ -214,6 +207,10 @@ class NetworkURL {
 
   static String unblokirUserId() {
     return "$url_go/userid/unblokir";
+  }
+
+  static String resetDeviceUserId() {
+    return "$url_go/userid/reset-device";
   }
 
   static String updateFotoNasabahCollme() {

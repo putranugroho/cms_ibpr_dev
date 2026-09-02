@@ -7,46 +7,39 @@ import '../network/network.dart';
 
 class KantorRepository {
   static Dio _dio() {
-    Dio dio = Dio();
+    final dio = Dio();
+    dio.options.headers['api-key'] = apiKey;
     dio.options.headers['x-username'] = xusername;
     dio.options.headers['x-password'] = xpassword;
     return dio;
   }
 
   static dynamic _safeDecode(dynamic data) {
-    if (data is String) {
-      return jsonDecode(data);
-    }
+    if (data is String) return jsonDecode(data);
     return data;
   }
 
-  static int _mapValueFromGo(dynamic response) {
-    final code = (response['code'] ?? '').toString();
-    return code == "000" ? 1 : 0;
-  }
+  static Map<String, dynamic> _hrisPayload(dynamic response) {
+    if (response is! Map) return <String, dynamic>{};
 
-  static String _mapMessageFromGo(dynamic response) {
-    return (response['message'] ?? '').toString();
-  }
+    final outerData = response['data'];
+    if (outerData is! Map) return <String, dynamic>{};
 
-  static List<dynamic> _mapDataList(dynamic response) {
-    final data = response['data'];
-    if (data is List) {
-      return data;
+    final nestedData = outerData['data'];
+    if (nestedData is Map) {
+      return Map<String, dynamic>.from(nestedData);
     }
-    if (data is Map<String, dynamic>) {
-      return [data];
-    }
-    return [];
+
+    return Map<String, dynamic>.from(outerData);
   }
 
-  static List<dynamic> _buildDummySandiBank(String bprId) {
-    return [
-      {
-        "kode_bank": bprId,
-        "nama": bprId,
-      }
-    ];
+  static bool _hrisSuccess(dynamic response) {
+    if (response is! Map) return false;
+    if ((response['code'] ?? '').toString() != '000') return false;
+
+    final rawHris = response['data'];
+    if (rawHris is Map && rawHris['success'] == false) return false;
+    return true;
   }
 
   static Future<dynamic> getKantor(
@@ -55,159 +48,68 @@ class KantorRepository {
     String username,
     String bprId,
   ) async {
-    Map<String, dynamic> json = {
-      "type": "all",
-      "userlogin": username,
-      "bpr_id": bprId,
-      "term": "web",
-    };
+    final dio = _dio();
+    final offices = <Map<String, dynamic>>[];
+    var page = 1;
+    var totalPages = 1;
+    var message = 'OK';
 
-    Dio dio = _dio();
+    do {
+      final body = {
+        'bpr_id': bprId,
+        'page': page.toString(),
+        'limit': '100',
+      };
 
-    if (kDebugMode) {
-      print("ENDPOINT URL : $url");
-      print("REQUEST BODY : $json");
-    }
+      if (kDebugMode) {
+        print('ENDPOINT URL HRIS KANTOR : $url');
+        print('REQUEST BODY HRIS KANTOR : $body');
+      }
 
-    final response = await dio.post(url, data: json);
-    final decoded = _safeDecode(response.data);
+      final response = await dio.post(url, data: body);
+      final decoded = _safeDecode(response.data);
+      message = (decoded is Map ? decoded['message'] : null)?.toString() ?? '';
 
-    if (kDebugMode) {
-      print("RESPONSE STATUS CODE : ${response.statusCode}");
-      print("RESPONSE DATA KANTOR : $decoded");
-    }
+      if (!_hrisSuccess(decoded)) {
+        return {
+          'value': 0,
+          'message': message.isEmpty ? 'Gagal mengambil data kantor HRIS' : message,
+          'data': <dynamic>[],
+          'raw': decoded,
+        };
+      }
 
-    return {
-      "value": _mapValueFromGo(decoded),
-      "message": _mapMessageFromGo(decoded),
-      "data": _mapDataList(decoded),
-      // tetap dikembalikan supaya notifier lama tidak error
-      "sandi_bank": _buildDummySandiBank(bprId),
-      // optional: simpan raw response untuk debug
-      "raw": decoded,
-    };
-  }
+      final payload = _hrisPayload(decoded);
+      final bpr = payload['bpr'] is Map ? Map<String, dynamic>.from(payload['bpr']) : <String, dynamic>{};
+      final bprCode = (bpr['code'] ?? bprId).toString();
+      final rawOffices = payload['offices'];
 
-  static Future<dynamic> insertKantorCMS(
-    String token,
-    String url,
-    String bprId,
-    String userlogin,
-    String bpr_id,
-    String kdKantor,
-    String namaKantor,
-  ) async {
-    Map<String, dynamic> json = {
-      "action": "insert",
-      "userlogin": userlogin,
-      "bpr_id": bprId,
-      "kd_kantor": kdKantor,
-      "term": "web",
-      "nama_kantor": namaKantor,
-    };
+      if (rawOffices is List) {
+        for (final raw in rawOffices) {
+          if (raw is! Map) continue;
+          final office = Map<String, dynamic>.from(raw);
+          office['bpr_id'] = bprCode;
+          office['bpr_code'] = bprCode;
+          office['kd_kantor'] = office['branch_code'];
+          office['nama_kantor'] = office['name'];
+          offices.add(office);
+        }
+      }
 
-    Dio dio = _dio();
-
-    if (kDebugMode) {
-      print("ENDPOINT URL : $url");
-      print("REQUEST BODY : $json");
-    }
-
-    final response = await dio.post(url, data: json);
-    final decoded = _safeDecode(response.data);
-
-    if (kDebugMode) {
-      print("RESPONSE STATUS CODE : ${response.statusCode}");
-      print("RESPONSE DATA INSERT KANTOR : $decoded");
-    }
+      final meta = payload['meta'];
+      if (meta is Map) {
+        totalPages = int.tryParse((meta['total_pages'] ?? 1).toString()) ?? 1;
+      }
+      page++;
+    } while (page <= totalPages);
 
     return {
-      "value": _mapValueFromGo(decoded),
-      "message": _mapMessageFromGo(decoded),
-      "data": decoded['data'],
-      "raw": decoded,
-    };
-  }
-
-  static Future<dynamic> updateKantorCMS(
-    String token,
-    String url,
-    String bprId,
-    String userlogin,
-    String bpr_id,
-    String kdKantor,
-    String namaKantor,
-  ) async {
-    Map<String, dynamic> json = {
-      "action": "update",
-      "userlogin": userlogin,
-      "bpr_id": bprId,
-      "kd_kantor": kdKantor,
-      "term": "web",
-      "nama_kantor": namaKantor,
-    };
-
-    Dio dio = _dio();
-
-    if (kDebugMode) {
-      print("ENDPOINT URL : $url");
-      print("REQUEST BODY : $json");
-    }
-
-    final response = await dio.post(url, data: json);
-    final decoded = _safeDecode(response.data);
-
-    if (kDebugMode) {
-      print("RESPONSE STATUS CODE : ${response.statusCode}");
-      print("RESPONSE DATA UPDATE KANTOR : $decoded");
-    }
-
-    return {
-      "value": _mapValueFromGo(decoded),
-      "message": _mapMessageFromGo(decoded),
-      "data": decoded['data'],
-      "raw": decoded,
-    };
-  }
-
-  static Future<dynamic> deleteKantorCMS(
-    String token,
-    String url,
-    String bprId,
-    String userlogin,
-    String bpr_id,
-    String kdKantor,
-    String namaKantor,
-  ) async {
-    Map<String, dynamic> json = {
-      "action": "delete",
-      "userlogin": userlogin,
-      "bpr_id": bprId,
-      "kd_kantor": kdKantor,
-      "term": "web",
-      "nama_kantor": namaKantor,
-    };
-
-    Dio dio = _dio();
-
-    if (kDebugMode) {
-      print("ENDPOINT URL : $url");
-      print("REQUEST BODY : $json");
-    }
-
-    final response = await dio.post(url, data: json);
-    final decoded = _safeDecode(response.data);
-
-    if (kDebugMode) {
-      print("RESPONSE STATUS CODE : ${response.statusCode}");
-      print("RESPONSE DATA DELETE KANTOR : $decoded");
-    }
-
-    return {
-      "value": _mapValueFromGo(decoded),
-      "message": _mapMessageFromGo(decoded),
-      "data": decoded['data'],
-      "raw": decoded,
+      'value': 1,
+      'message': message,
+      'data': offices,
+      'sandi_bank': [
+        {'kode_bank': bprId, 'nama': bprId}
+      ],
     };
   }
 }

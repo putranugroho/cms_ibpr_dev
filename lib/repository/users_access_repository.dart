@@ -6,10 +6,12 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 import '../network/network.dart';
+import 'kantor_repository.dart';
 
 class UsersAccessRepository {
   static Dio _dio() {
     Dio dio = Dio();
+    dio.options.headers['api-key'] = apiKey;
     dio.options.headers['x-username'] = xusername;
     dio.options.headers['x-password'] = xpassword;
     return dio;
@@ -140,29 +142,15 @@ class UsersAccessRepository {
       fasilitas.add(row);
     }
 
-    // kantor sekarang terpisah endpoint
-    // response akhir tetap digabung supaya notifier lama tetap jalan
     List<dynamic> kantor = [];
     try {
-      Map<String, dynamic> kantorJson = {"type": "all", "bpr_id": bprId, "userlogin": username, "term": "web"};
-
-      if (kDebugMode) {
-        print("ENDPOINT URL KANTOR : ${NetworkURL.getListKantorAccess()}");
-        print("REQUEST BODY KANTOR : $kantorJson");
-      }
-
-      final kantorResponse = await dio.post(
+      final kantorResponse = await KantorRepository.getKantor(
+        token,
         NetworkURL.getListKantorAccess(),
-        data: kantorJson,
+        username,
+        bprId,
       );
-      final kantorDecoded = _safeDecode(kantorResponse.data);
-
-      if (kDebugMode) {
-        print("RESPONSE STATUS CODE KANTOR : ${kantorResponse.statusCode}");
-        print("RESPONSE DATA KANTOR : $kantorDecoded");
-      }
-
-      kantor = kantorDecoded['data'] ?? kantorDecoded['kantor'] ?? [];
+      kantor = kantorResponse['data'] ?? [];
     } catch (e) {
       if (kDebugMode) {
         print("GET KANTOR ERROR : $e");
@@ -174,6 +162,46 @@ class UsersAccessRepository {
       "message": _mapMessageFromGo(fasilitasDecoded),
       "data": fasilitas,
       "kantor": kantor,
+    };
+  }
+
+  static Future<dynamic> inquiryEmployee(
+    String url,
+    String bprId,
+    String search,
+  ) async {
+    final body = {
+      'bpr_id': bprId,
+      'search': search.trim(),
+      'page': '1',
+      'limit': '100',
+    };
+
+    final response = await _dio().post(url, data: body);
+    final decoded = _safeDecode(response.data);
+
+    if (kDebugMode) {
+      print('ENDPOINT URL INQUIRY EMPLOYEE : $url');
+      print('REQUEST INQUIRY EMPLOYEE : $body');
+      print('RESPONSE INQUIRY EMPLOYEE : $decoded');
+    }
+
+    final rawHris = decoded is Map ? decoded['data'] : null;
+    final nested = rawHris is Map ? rawHris['data'] : null;
+    final employees = nested is Map && nested['employees'] is List
+        ? List<dynamic>.from(nested['employees'])
+        : <dynamic>[];
+    final success = decoded is Map &&
+        (decoded['code'] ?? '').toString() == '000' &&
+        !(rawHris is Map && rawHris['success'] == false);
+
+    return {
+      'value': success ? 1 : 0,
+      'message': decoded is Map
+          ? (decoded['message'] ?? '').toString()
+          : 'Response inquiry employee tidak valid',
+      'data': employees,
+      'raw': decoded,
     };
   }
 
@@ -351,6 +379,35 @@ class UsersAccessRepository {
       "message": _mapMessageFromGo(decoded),
       "data": decoded['data'],
       "raw": decoded,
+    };
+  }
+
+  static Future<dynamic> resetDeviceUserId(
+    String url,
+    String bprId,
+    String userlogin,
+    String userid,
+  ) async {
+    final body = {
+      'bpr_id': bprId,
+      'userlogin': _normalizeUpper(userlogin),
+      'userid': _normalizeUpper(userid),
+    };
+
+    final response = await _dio().post(url, data: body);
+    final decoded = _safeDecode(response.data);
+
+    if (kDebugMode) {
+      print('ENDPOINT URL RESET DEVICE : $url');
+      print('REQUEST RESET DEVICE : $body');
+      print('RESPONSE RESET DEVICE : $decoded');
+    }
+
+    return {
+      'value': _mapValueFromGo(decoded),
+      'message': _mapMessageFromGo(decoded),
+      'data': decoded['data'],
+      'raw': decoded,
     };
   }
 

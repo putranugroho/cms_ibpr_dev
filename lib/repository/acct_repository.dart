@@ -4,10 +4,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import '../network/network.dart';
+import 'kantor_repository.dart';
 
 class AccountRepository {
   static Dio _dio() {
     Dio dio = Dio();
+    dio.options.headers['api-key'] = apiKey;
     dio.options.headers['x-username'] = xusername;
     dio.options.headers['x-password'] = xpassword;
     return dio;
@@ -68,33 +70,16 @@ class AccountRepository {
       print("RESPONSE DATA ACCTYPE : $acctDecoded");
     }
 
-    // Tetap ambil kantor supaya NasabahNotifier lama tetap jalan
+    // Kantor bersumber dari HRIS, melalui mapper yang dipakai halaman Kantor.
     List<dynamic> kantor = [];
     try {
-      final kantorJson = {
-        "type": "all",
-        "userlogin": username,
-        "bpr_id": bprId,
-        "term": "web",
-      };
-
-      if (kDebugMode) {
-        print("ENDPOINT URL KANTOR : ${NetworkURL.getListKantorAccess()}");
-        print("REQUEST BODY KANTOR : $kantorJson");
-      }
-
-      final kantorResponse = await dio.post(
+      final kantorResponse = await KantorRepository.getKantor(
+        token,
         NetworkURL.getListKantorAccess(),
-        data: kantorJson,
+        username,
+        bprId,
       );
-      final kantorDecoded = _safeDecode(kantorResponse.data);
-
-      if (kDebugMode) {
-        print("RESPONSE STATUS CODE KANTOR : ${kantorResponse.statusCode}");
-        print("RESPONSE DATA KANTOR : $kantorDecoded");
-      }
-
-      kantor = _mapDataList(kantorDecoded);
+      kantor = List<dynamic>.from(kantorResponse['data'] ?? []);
     } catch (e) {
       if (kDebugMode) {
         print("GET KANTOR ERROR : $e");

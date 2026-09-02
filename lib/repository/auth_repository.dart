@@ -9,6 +9,7 @@ import '../network/network.dart';
 class AuthRepository {
   static Dio _dio() {
     Dio dio = Dio();
+    dio.options.headers['api-key'] = apiKey;
     dio.options.headers['x-username'] = xusername;
     dio.options.headers['x-password'] = xpassword;
     return dio;
@@ -36,9 +37,14 @@ class AuthRepository {
 
   static Map<String, dynamic> _mapLoginDataToOldShape(
     Map<String, dynamic> row,
-    String bprId,
   ) {
+    final bprId = (row["bpr_id"] ?? row["bprId"] ?? "").toString().trim();
+
     return {
+      // raw response tetap tersedia, kemudian field penting dinormalisasi
+      // agar key dengan casing berbeda tidak menimpa hasil mapping.
+      ...row,
+
       // shape lama yang biasa dipakai frontend / UsersModel
       "users_id": (row["Userid"] ?? "").toString(),
       "usersId": (row["Userid"] ?? "").toString(),
@@ -63,9 +69,6 @@ class AuthRepository {
       "tglexp": (row["Tglexp"] ?? "").toString(),
       "lvluser": (row["Lvluser"] ?? "").toString(),
       "nama_kantor": (row["NamaKantor"] ?? "").toString(),
-
-      // raw response Go tetap disimpan supaya field lain masih bisa dipakai
-      ...row,
     };
   }
 
@@ -74,23 +77,22 @@ class AuthRepository {
     String url,
     String username,
     String password,
+    String deviceId,
   ) async {
-    const String bprId = "609999";
-
     final normalizedUserId = _normalizeUpper(username);
 
     Map<String, dynamic> json = {
-      "bpr_id": bprId,
       "userlogin": "ADMIN",
       "userid": normalizedUserId,
       "password": encryptString(password.trim()),
+      "device_id": deviceId.trim(),
     };
 
     final dio = _dio();
 
     if (kDebugMode) {
       print("ENDPOINT URL LOGIN : $url");
-      print("REQUEST LOGIN : $json");
+      print("REQUEST LOGIN : {userlogin: ADMIN, userid: $normalizedUserId, device_id: [REDACTED]}");
     }
 
     final response = await dio.post(url, data: json);
@@ -102,7 +104,9 @@ class AuthRepository {
     }
 
     final rawData = decoded['data'];
-    final mappedData = rawData is Map<String, dynamic> ? _mapLoginDataToOldShape(rawData, bprId) : <String, dynamic>{};
+    final mappedData = rawData is Map<String, dynamic>
+        ? _mapLoginDataToOldShape(rawData)
+        : <String, dynamic>{};
 
     return {
       "value": _mapValueFromGo(decoded),

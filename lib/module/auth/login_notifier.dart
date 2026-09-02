@@ -53,18 +53,21 @@ class LoginNotifier extends ChangeNotifier {
     });
   }
 
-  cek() {
+  Future<void> cek() async {
     if (!(keyForm.currentState?.validate() ?? false)) return;
 
     listFasilitas.clear();
     CustomDialog.loading(context);
     notifyListeners();
 
+    final deviceId = await Pref().getOrCreateDeviceId();
+
     AuthRepository.login(
       token,
       NetworkURL.login(),
       username.text.trim(),
       password.text.trim(),
+      deviceId,
     ).then((value) async {
       if (value['value'] == 1) {
         try {

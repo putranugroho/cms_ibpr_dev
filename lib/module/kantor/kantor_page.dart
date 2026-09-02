@@ -1,15 +1,10 @@
 import 'package:cms_ibpr/models/index.dart';
 import 'package:cms_ibpr/module/kantor/kantor_notifier.dart';
-
-import 'package:cms_ibpr/utils/button_custom.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 import '../../utils/colors.dart';
-import '../../utils/images_path.dart';
 import '../../utils/pro_shimmer.dart';
 
 class KantorPage extends StatelessWidget {
@@ -21,278 +16,140 @@ class KantorPage extends StatelessWidget {
       create: (_) => KantorNotifier(context: context),
       child: Consumer<KantorNotifier>(
         builder: (context, value, child) => SafeArea(
-            child: Scaffold(
-          key: value.key,
-          endDrawer: Drawer(
-            width: 500,
-            child: Form(
-              key: value.keyForm,
-              child: ListView(
-                padding: EdgeInsets.all(20),
-                children: [
-                  // const Text(
-                  //   "BPR ",
-                  //   style: TextStyle(
-                  //     fontSize: 12,
-                  //   ),
-                  // ),
-                  // const SizedBox(
-                  //   height: 4,
-                  // ),
-                  // DropdownButton(
-                  //     isExpanded: true,
-                  //     value: value.sandiBankModel,
-                  //     items: value.listSandi
-                  //         .map((e) => DropdownMenuItem(
-                  //               value: e,
-                  //               child: Container(
-                  //                 padding:
-                  //                     const EdgeInsets.symmetric(vertical: 12),
-                  //                 child: Text(
-                  //                   e.nama,
-                  //                   maxLines: 1,
-                  //                   overflow: TextOverflow.ellipsis,
-                  //                 ),
-                  //               ),
-                  //             ))
-                  //         .toList(),
-                  //     onChanged: (e) {
-                  //       value.pilihBank(e!);
-                  //     }),
-                  // const SizedBox(
-                  //   height: 16,
-                  // ),
-
-                  Align(
-                    alignment: Alignment.center,
-                    child: Text(
-                      value.editData ? "Edit Kantor" : "Tambah Kantor",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+          child: Scaffold(
+            body: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  height: 80,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Kantor HRIS',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
+                      IconButton(
+                        tooltip: 'Refresh',
+                        onPressed: value.isLoading ? null : value.getKantor,
+                        icon: const Icon(Icons.refresh),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    "Kode Kantor ",
-                    style: TextStyle(
-                      fontSize: 12,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  TextFormField(
-                    controller: value.kdKantor,
-                    validator: (e) {
-                      if ((e ?? '').trim().isEmpty) {
-                        return "Please fill this field";
-                      } else {
-                        return null;
-                      }
-                    },
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  const Text(
-                    "Nama Kantor ",
-                    style: TextStyle(
-                      fontSize: 12,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  TextFormField(
-                    controller: value.namakantor,
-                    validator: (e) {
-                      if ((e ?? '').trim().isEmpty) {
-                        return "Please fill this field";
-                      } else {
-                        return null;
-                      }
-                    },
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  ButtonPrimary(
-                    onTap: () {
-                      value.cek();
-                    },
-                    name: "Simpan",
-                  ),
-                  value.editData
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const SizedBox(
-                              height: 16,
-                            ),
-                            ButtonPrimary(
-                              onTap: () {
-                                value.confirm();
-                              },
-                              name: "Hapus",
-                            ),
-                          ],
-                        )
-                      : SizedBox()
-                ],
-              ),
+                ),
+                Expanded(child: _buildBody(value)),
+              ],
             ),
           ),
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody(KantorNotifier value) {
+    if (value.isLoading) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        child: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ProShimmer(height: 10, width: 200),
+            SizedBox(height: 4),
+            ProShimmer(height: 10, width: 120),
+            SizedBox(height: 4),
+            ProShimmer(height: 10, width: 100),
+          ],
+        ),
+      );
+    }
+
+    if (value.errorMessage.isNotEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                height: 80,
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                alignment: Alignment.centerLeft,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        "Kantor",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    ButtonPrimary(
-                      onTap: () {
-                        value.tambah();
-                      },
-                      name: "Tambah Kantor",
-                    )
-                  ],
-                ),
-              ),
-              Expanded(
-                child: value.isLoading
-                    ? Container(
-                        padding: const EdgeInsets.all(16),
-                        child: const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ProShimmer(height: 10, width: 200),
-                            SizedBox(height: 4),
-                            ProShimmer(height: 10, width: 120),
-                            SizedBox(height: 4),
-                            ProShimmer(height: 10, width: 100),
-                            SizedBox(height: 4),
-                          ],
-                        ),
-                      )
-                    : value.listResult.isNotEmpty
-                        ? RefreshIndicator(
-                            onRefresh: () => value.getKantor(),
-                            child: Container(
-                              padding: EdgeInsets.all(20),
-                              child: SfDataGrid(
-                                headerRowHeight: 60,
-                                rowHeight: 56,
-                                defaultColumnWidth: 150,
-                                gridLinesVisibility: GridLinesVisibility.both,
-                                headerGridLinesVisibility: GridLinesVisibility.both,
-                                selectionMode: SelectionMode.single,
-                                onSelectionChanged: value.onSelectionChanged,
-                                source: DetailDataSource(value.listResult.cast<KantorModel>()),
-                                columns: <GridColumn>[
-                                  GridColumn(
-                                    width: 50,
-                                    columnName: 'no',
-                                    label: Container(
-                                      color: colorPrimary,
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        'No',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  GridColumn(
-                                    width: 200,
-                                    columnName: 'kd_bank',
-                                    label: Container(
-                                      color: colorPrimary,
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        'Kode Bank',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  GridColumn(
-                                    width: 300,
-                                    columnName: 'kd_kantor',
-                                    label: Container(
-                                      color: colorPrimary,
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        'Kode Kantor',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  GridColumn(
-                                    width: 300,
-                                    columnName: 'nama_kantor',
-                                    label: Container(
-                                      color: colorPrimary,
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        'Nama Kantor',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        : Center(
-                            child: Text("Data kantor tidak ditemukan"),
-                          ),
+              Text(value.errorMessage, textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: value.getKantor,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Coba Lagi'),
               ),
             ],
           ),
-        )),
+        ),
+      );
+    }
+
+    if (value.list.isEmpty) {
+      return const Center(child: Text('Data kantor HRIS tidak ditemukan'));
+    }
+
+    return RefreshIndicator(
+      onRefresh: value.getKantor,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: SfDataGrid(
+          headerRowHeight: 60,
+          rowHeight: 64,
+          defaultColumnWidth: 150,
+          frozenColumnsCount: 2,
+          gridLinesVisibility: GridLinesVisibility.both,
+          headerGridLinesVisibility: GridLinesVisibility.both,
+          source: KantorDataSource(value.list),
+          columns: [
+            _column('no', 'No', width: 60),
+            _column('branch_code', 'Kode Kantor', width: 140),
+            _column('name', 'Nama Kantor', width: 220),
+            _column('branch_type', 'Tipe', width: 120),
+            _column('is_default', 'Default', width: 100),
+            _column('employee_count', 'Pegawai', width: 100),
+            _column('address', 'Alamat', width: 360),
+            _column('phone', 'Telepon', width: 160),
+            _column('email', 'Email', width: 220),
+          ],
+        ),
+      ),
+    );
+  }
+
+  GridColumn _column(String name, String label, {double width = 150}) {
+    return GridColumn(
+      width: width,
+      columnName: name,
+      label: Container(
+        color: colorPrimary,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
       ),
     );
   }
 }
 
-class DetailDataSource extends DataGridSource {
-  DetailDataSource(List<KantorModel> list) {
-    int index = 1;
-    _laporanData = list.map<DataGridRow>((data) {
-      DataGridRow row = DataGridRow(
+class KantorDataSource extends DataGridSource {
+  KantorDataSource(List<KantorModel> list) {
+    var index = 1;
+    _rows = list.map((data) {
+      final row = DataGridRow(
         cells: [
-          DataGridCell(columnName: 'no', value: index.toString()),
-          DataGridCell(columnName: 'kd_bank', value: data.bpr_id),
-          DataGridCell(columnName: 'kd_kantor', value: data.kdKantor),
-          DataGridCell(columnName: 'nama_kantor', value: data.namaKantor),
-          // DataGridCell(columnName: 'days', value: data.day),
-          // DataGridCell(columnName: 'start_time', value: data.startTime),
-          // DataGridCell(columnName: 'end_time', value: data.endTime),
-
-          // DataGridCell(
-          //     columnName: 'status',
-          //     value: data.isDeleted == "N" ? "Active" : "Non-active"),
-          // DataGridCell(columnName: 'batch', value: data.batch),
+          DataGridCell<String>(columnName: 'no', value: index.toString()),
+          DataGridCell<String>(columnName: 'branch_code', value: data.kdKantor.toString()),
+          DataGridCell<String>(columnName: 'name', value: data.namaKantor.toString()),
+          DataGridCell<String>(columnName: 'branch_type', value: data.branchType),
+          DataGridCell<String>(columnName: 'is_default', value: data.isDefault ? 'Ya' : 'Tidak'),
+          DataGridCell<String>(columnName: 'employee_count', value: data.employeeCount.toString()),
+          DataGridCell<String>(columnName: 'address', value: data.address),
+          DataGridCell<String>(columnName: 'phone', value: data.phone),
+          DataGridCell<String>(columnName: 'email', value: data.email),
         ],
       );
       index++;
@@ -300,41 +157,27 @@ class DetailDataSource extends DataGridSource {
     }).toList();
   }
 
-  List<DataGridRow> _laporanData = [];
+  List<DataGridRow> _rows = [];
 
   @override
-  List<DataGridRow> get rows => _laporanData;
+  List<DataGridRow> get rows => _rows;
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
     return DataGridRowAdapter(
-      cells: row.getCells().map<Widget>((e) {
-        if (e.columnName == 'status') {
-          return Container(
-            margin: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            alignment: Alignment.center,
-            padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(color: colorPrimary, borderRadius: BorderRadius.circular(8)),
-            child: Text(e.value.toString()),
-          );
-        } else {
-          return Container(
-            alignment: Alignment.center,
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              e.value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          );
-        }
+      cells: row.getCells().map((cell) {
+        return Container(
+          alignment: cell.columnName == 'no' || cell.columnName == 'is_default' || cell.columnName == 'employee_count'
+              ? Alignment.center
+              : Alignment.centerLeft,
+          padding: const EdgeInsets.all(8),
+          child: Text(
+            (cell.value ?? '').toString(),
+            maxLines: cell.columnName == 'address' ? 2 : 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        );
       }).toList(),
     );
-  }
-
-  String formatStringData(String data) {
-    int numericData = int.tryParse(data) ?? 0;
-    final formatter = NumberFormat("#,###");
-    return formatter.format(numericData);
   }
 }

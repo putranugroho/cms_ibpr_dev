@@ -38,9 +38,110 @@ class UsersAccessNotifier extends ChangeNotifier {
   List<KantorModel> listKantor = [];
   KantorModel? kantorModel;
 
+  final TextEditingController employeeSearch = TextEditingController();
+  final List<EmployeeModel> employeeResults = [];
+  EmployeeModel? selectedEmployee;
+  bool employeeVerified = false;
+  bool isSearchingEmployee = false;
+  String? employeeSearchError;
+
   pilihKantor(KantorModel value) {
     kantorModel = value;
     kantorError = null;
+    notifyListeners();
+  }
+
+  Future<void> inquiryEmployee() async {
+    final search = employeeSearch.text.trim();
+    employeeSearchError = null;
+    employeeResults.clear();
+
+    if (search.isEmpty) {
+      employeeSearchError = "Masukkan nama, nomor employee, NIK, atau telepon";
+      notifyListeners();
+      return;
+    }
+
+    isSearchingEmployee = true;
+    notifyListeners();
+
+    try {
+      final response = await UsersAccessRepository.inquiryEmployee(
+        NetworkURL.inquiryEmployeeHRIS(),
+        users!.bprId,
+        search,
+      );
+
+      if (response['value'] == 1) {
+        for (final item in (response['data'] ?? [])) {
+          employeeResults.add(
+            EmployeeModel.fromJson(Map<String, dynamic>.from(item)),
+          );
+        }
+
+        if (employeeResults.isEmpty) {
+          employeeSearchError = "Employee tidak ditemukan di HRIS";
+        }
+      } else {
+        employeeSearchError = (response['message'] ?? '').toString().trim();
+        if (employeeSearchError!.isEmpty) {
+          employeeSearchError = "Inquiry employee HRIS gagal";
+        }
+      }
+    } catch (e) {
+      employeeSearchError = "Inquiry employee HRIS gagal: $e";
+    } finally {
+      isSearchingEmployee = false;
+      notifyListeners();
+    }
+  }
+
+  void selectEmployee(EmployeeModel employee) {
+    selectedEmployee = employee;
+    employeeVerified = true;
+    employeeSearchError = null;
+    namaUsers.text = employee.name;
+
+    // User ID sengaja tidak diambil dari employee_no. User tetap mengisinya.
+    username.clear();
+
+    final officeMatch = listKantor.where(
+      (office) =>
+          (office.kdKantor ?? '').toString().trim() ==
+          employee.officeCode.trim(),
+    );
+
+    if (officeMatch.isNotEmpty) {
+      kantorModel = officeMatch.first;
+    } else if (employee.officeCode.isNotEmpty) {
+      final employeeOffice = KantorModel(
+        bpr_id: users?.bprId ?? '',
+        kdKantor: employee.officeCode,
+        namaKantor: employee.officeName,
+        id: employee.officeId,
+        branchType: employee.officeType,
+      );
+      listKantor.add(employeeOffice);
+      kantorModel = employeeOffice;
+    } else {
+      kantorModel = null;
+    }
+
+    kantorError = kantorModel == null ? "Kantor employee tidak tersedia" : null;
+    notifyListeners();
+  }
+
+  void changeEmployee() {
+    employeeVerified = false;
+    selectedEmployee = null;
+    namaUsers.clear();
+    username.clear();
+    password.clear();
+    tglKadaluarsa.clear();
+    kantorModel = null;
+    kantorError = null;
+    fasilitasError = null;
+    listAddFasilitas.clear();
     notifyListeners();
   }
 
@@ -135,13 +236,20 @@ class UsersAccessNotifier extends ChangeNotifier {
       kantorError = "Pilih kantor";
     }
 
+    if (!editData && selectedEmployee == null) {
+      employeeSearchError = "Employee harus dipilih dari hasil inquiry HRIS";
+    }
+
     if (listAddFasilitas.isEmpty) {
       fasilitasError = "Pilih minimal 1 fasilitas";
     }
 
     notifyListeners();
 
-    return formValid && kantorError == null && fasilitasError == null;
+    return formValid &&
+        kantorError == null &&
+        fasilitasError == null &&
+        (editData || selectedEmployee != null);
   }
 
   cek() {
@@ -293,8 +401,13 @@ class UsersAccessNotifier extends ChangeNotifier {
     kantorError = null;
     fasilitasError = null;
     listAddFasilitas.clear();
-    key.currentState!.openEndDrawer();
     editData = false;
+    employeeSearch.clear();
+    employeeResults.clear();
+    selectedEmployee = null;
+    employeeVerified = false;
+    employeeSearchError = null;
+    key.currentState!.openEndDrawer();
     notifyListeners();
   }
 
@@ -304,6 +417,9 @@ class UsersAccessNotifier extends ChangeNotifier {
     listAddFasilitas.clear();
     kantorError = null;
     fasilitasError = null;
+    employeeVerified = false;
+    selectedEmployee = null;
+    employeeSearchError = null;
 
     final selected = listModelUsers.where(
       (e) => (e.flag ?? "").toUpperCase() == "TRUE",
@@ -538,5 +654,58 @@ class UsersAccessNotifier extends ChangeNotifier {
       Navigator.pop(context);
       informationDialog(context, "Informasi", e.toString());
     });
+  }
+
+  Future<void> resetDeviceSelectedUser() async {
+    if (usersAccessModel == null) {
+      informationDialog(context, "Informasi", "Pilih user terlebih dahulu");
+      return;
+    }
+
+    final targetUserId = (usersAccessModel?.userid ?? username.text).trim();
+    if (targetUserId.isEmpty) {
+      informationDialog(context, "Informasi", "User ID tidak valid");
+      return;
+    }
+
+    final confirm = await _confirmAction(
+      title: "Konfirmasi",
+      message: "Reset perangkat yang terhubung dengan user $targetUserId?",
+      confirmText: "Reset Device",
+      confirmColor: Colors.blue,
+    );
+
+    if (!confirm) return;
+
+    Navigator.pop(context);
+    DialogCustom().showLoading(context);
+
+    UsersAccessRepository.resetDeviceUserId(
+      NetworkURL.resetDeviceUserId(),
+      users!.bprId,
+      users!.usersId,
+      targetUserId,
+    ).then((value) {
+      Navigator.pop(context);
+
+      if (value['value'] == 1) {
+        getUsersAccess();
+      }
+
+      informationDialog(context, "Informasi", value['message']);
+    }).catchError((e) {
+      Navigator.pop(context);
+      informationDialog(context, "Informasi", e.toString());
+    });
+  }
+
+  @override
+  void dispose() {
+    employeeSearch.dispose();
+    namaUsers.dispose();
+    tglKadaluarsa.dispose();
+    username.dispose();
+    password.dispose();
+    super.dispose();
   }
 }

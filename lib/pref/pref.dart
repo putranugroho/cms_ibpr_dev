@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cms_ibpr/models/index.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,6 +12,29 @@ class Pref {
   static String kodeKantor = "kode_kantor";
   static String namaKantor = "nama_kantor";
   static String fasilitas = "fasilitas";
+  static String deviceId = "cms_device_id";
+
+  Future<String> getOrCreateDeviceId() async {
+    final pref = await SharedPreferences.getInstance();
+    final saved = (pref.getString(Pref.deviceId) ?? "").trim();
+    if (saved.isNotEmpty) return saved;
+
+    Random random;
+    try {
+      random = Random.secure();
+    } catch (_) {
+      random = Random();
+    }
+
+    final randomPart = List.generate(
+      4,
+      (_) => random.nextInt(0x100000000).toRadixString(16).padLeft(8, '0'),
+    ).join();
+    final generated = "CMS-${DateTime.now().microsecondsSinceEpoch}-$randomPart";
+
+    await pref.setString(Pref.deviceId, generated);
+    return generated;
+  }
 
   simpan(UsersModel users) async {
     SharedPreferences pref = await SharedPreferences.getInstance();
@@ -52,6 +77,8 @@ class Pref {
     pref.remove(Pref.namaKantor);
     pref.remove(Pref.fasilitas);
     pref.remove(Pref.lastActivityAt);
+    // deviceId sengaja tidak dihapus. ID ini mengikat instalasi/browser
+    // yang sama meskipun user logout atau session berakhir.
   }
 
   static String lastActivityAt = "last_activity_at";

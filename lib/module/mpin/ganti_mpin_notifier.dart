@@ -270,7 +270,14 @@ class GantiMPINNotifier extends ChangeNotifier {
   String pesan = "";
   validasiUser() async {
     if (passForm.currentState!.validate()) {
-      AuthRepository.login(token, NetworkURL.login(), users!.usersId, password.text.trim()).then((value) async {
+      final deviceId = await Pref().getOrCreateDeviceId();
+      AuthRepository.login(
+        token,
+        NetworkURL.login(),
+        users!.usersId,
+        password.text.trim(),
+        deviceId,
+      ).then((value) async {
         Navigator.pop(context);
         if (value['value'] == 1) {
           await generated();

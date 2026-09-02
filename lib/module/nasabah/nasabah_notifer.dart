@@ -390,18 +390,24 @@ class NasabahNotifier extends ChangeNotifier {
     }
   }
 
+  String _validPhotoPath(dynamic value) {
+    final path = (value ?? '').toString().trim();
+    if (path.isEmpty || path.toLowerCase() == 'null') return '';
+    return path;
+  }
+
   String get currentKtpPhotoPath {
-    final bridgePath = bridgeKtpPath.trim();
+    final bridgePath = _validPhotoPath(bridgeKtpPath);
     if (bridgePath.isNotEmpty) return bridgePath;
 
-    return (nasabahModel?.fhoto1 ?? "").toString().trim();
+    return _validPhotoPath(nasabahModel?.fhoto1);
   }
 
   String get currentSelfiePhotoPath {
-    final bridgePath = bridgeSelfiePath.trim();
+    final bridgePath = _validPhotoPath(bridgeSelfiePath);
     if (bridgePath.isNotEmpty) return bridgePath;
 
-    return (nasabahModel?.fhoto2 ?? "").toString().trim();
+    return _validPhotoPath(nasabahModel?.fhoto2);
   }
 
   bool get hasCurrentKtpPhoto => currentKtpPhotoPath.trim().isNotEmpty;
@@ -646,6 +652,27 @@ class NasabahNotifier extends ChangeNotifier {
 
   cek() async {
     if (keyForm.currentState!.validate()) {
+      final hasNewKtp = image2 != null;
+      final hasNewSelfie = image != null;
+
+      if (hasNewKtp != hasNewSelfie) {
+        informationDialog(
+          context,
+          "Error",
+          "Foto KTP dan Selfie KTP harus tersedia berpasangan.",
+        );
+        return;
+      }
+
+      if (!hasNewKtp && !hasCurrentPhotoPair) {
+        informationDialog(
+          context,
+          "Error",
+          "Foto KTP dan Selfie KTP wajib tersedia, baik dari hasil tarik foto maupun kamera.",
+        );
+        return;
+      }
+
       _isSubmitting = true;
 
       if (!editData) {
